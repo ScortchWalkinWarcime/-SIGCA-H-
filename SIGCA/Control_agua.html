@@ -1,0 +1,166 @@
+<!DOCTYPE html>
+<html>
+<head>
+<title>Control de Agua - SIGCA-H</title>
+<link rel="stylesheet" href="https://www.w3schools.com/w3css/4/w3.css">
+
+<style>
+body{
+margin:0;
+font-family: Arial;
+background:#f1f1f1;
+}
+
+.sidebar{
+width:220px;
+background:#212529;
+position:fixed;
+height:100vh;
+color:white;
+overflow-y:auto;
+}
+
+.sidebar a{
+display:block;
+color:white;
+padding:12px;
+text-decoration:none;
+}
+
+.sidebar a:hover{
+background:#343a40;
+}
+
+.content{
+margin-left:220px;
+padding:20px;
+}
+</style>
+</head>
+
+<body>
+
+<div class="sidebar">
+<h3 class="w3-center w3-padding">SIGCA-H</h3>
+
+<a href="SIGCA-H_W3.html">Dashboard</a>
+
+<p class="w3-small w3-padding">OPERACIÓN SANITARIA</p>
+
+<a href="Control_Temp.html">Control de Temperatura</a>
+<a href="Control_agua.html">Control de Agua</a>
+<a href="Control_higiene.html">Control de Higiene</a>
+<a href="recepcion_alimentos.html">Recepción de Alimentos</a>
+</div>
+
+<div class="content">
+
+<h2>Control de Agua</h2>
+
+<div class="w3-card w3-white w3-padding">
+
+<form id="formAgua">
+
+<label>Área</label>
+<select id="area" class="w3-input w3-border">
+<option>Cocina</option>
+<option>Lavado de utensilios</option>
+<option>Baños</option>
+</select>
+
+<label class="w3-margin-top">Nivel de cloro (ppm)</label>
+<input id="cloro" class="w3-input w3-border" type="number">
+
+<label class="w3-margin-top">PH del agua</label>
+<input id="ph" class="w3-input w3-border" type="number" step="0.1">
+
+<!-- 🔥 NUEVOS CAMPOS -->
+
+<label class="w3-margin-top">Potabilidad</label>
+<select id="potabilidad" class="w3-input w3-border">
+<option>Apta</option>
+<option>No apta</option>
+</select>
+
+<label class="w3-margin-top">Temperatura del agua (°C)</label>
+<input id="temperatura" class="w3-input w3-border" type="number">
+
+<label class="w3-margin-top">Turbidez (NTU)</label>
+<input id="turbidez" class="w3-input w3-border" type="number" step="0.1">
+
+<label class="w3-margin-top">Dureza (mg/L)</label>
+<input id="dureza" class="w3-input w3-border" type="number">
+
+<label class="w3-margin-top">Metales pesados</label>
+<select id="metales" class="w3-input w3-border">
+<option>No detectados</option>
+<option>Detectados</option>
+</select>
+
+<label class="w3-margin-top">Observaciones</label>
+<textarea id="observaciones" class="w3-input w3-border"></textarea>
+
+<button class="w3-button w3-blue w3-margin-top">
+Registrar
+</button>
+
+</form>
+
+</div>
+
+</div>
+
+<!-- jQuery -->
+<script src="https://code.jquery.com/jquery-3.7.1.min.js"></script>
+
+<!-- 🔥 AJAX CONTROL DE AGUA -->
+<script>
+$(function() {
+
+  // Precarga (opcional)
+  $.get('/api/control-agua', function(records) {
+    console.log('Registros cargados:', records);
+  });
+
+  // Envío del formulario
+  $('#formAgua').on('submit', function(event) {
+    event.preventDefault();
+
+    const data = {
+      area: $('#area').val(),
+      cloro_ppm: $('#cloro').val(),
+      ph: $('#ph').val(),
+      potabilidad: $('#potabilidad').val(),
+      temperatura: $('#temperatura').val(),
+      turbidez: $('#turbidez').val(),
+      dureza: $('#dureza').val(),
+      metales_pesados: $('#metales').val(),
+      observaciones: $('#observaciones').val()
+    };
+
+    console.log("Datos enviados:", data);
+
+    $.ajax({
+      url: '/api/control-agua',
+      method: 'POST',
+      contentType: 'application/json',
+      data: JSON.stringify(data),
+
+      success: function(response) {
+        alert('Registro de agua guardado correctamente');
+        console.log(response);
+      },
+
+      error: function(xhr, status, error) {
+        alert('Error al enviar datos');
+        console.error(error);
+      }
+    });
+
+  });
+
+});
+</script>
+
+</body>
+</html>

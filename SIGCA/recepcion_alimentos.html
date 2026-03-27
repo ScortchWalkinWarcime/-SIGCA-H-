@@ -1,0 +1,231 @@
+<!DOCTYPE html>
+<html>
+<head>
+<title>Recepción de Alimentos - SIGCA-H</title>
+<link rel="stylesheet" href="https://www.w3schools.com/w3css/4/w3.css">
+
+<style>
+body{
+margin:0;
+font-family: Arial;
+background:#f1f1f1;
+}
+
+.sidebar{
+width:220px;
+background:#212529;
+position:fixed;
+height:100vh;
+color:white;
+overflow-y:auto;
+}
+
+.sidebar a{
+display:block;
+color:white;
+padding:12px;
+text-decoration:none;
+}
+
+.sidebar a:hover{
+background:#343a40;
+}
+
+.content{
+margin-left:220px;
+padding:20px;
+}
+</style>
+</head>
+
+<body>
+
+<div class="sidebar">
+<h3 class="w3-center w3-padding">SIGCA-H</h3>
+
+<a href="SIGCA-H_W3.html">Dashboard</a>
+
+<p class="w3-small w3-padding">OPERACIÓN SANITARIA</p>
+
+<a href="Control_Temp.html">Control de Temperatura</a>
+<a href="Control_agua.html">Control de Agua</a>
+<a href="Control_higiene.html">Control de Higiene</a>
+<a href="recepcion_alimentos.html">Recepción de Alimentos</a>
+</div>
+
+<div class="content">
+
+<h2>Recepción de Alimentos</h2>
+
+<div class="w3-card w3-white w3-padding">
+
+<form id="formRecepcion">
+
+<label>Producto</label>
+<input id="producto" class="w3-input w3-border" required>
+
+<label class="w3-margin-top">Proveedor</label>
+<input id="proveedor" class="w3-input w3-border">
+
+<label class="w3-margin-top">Temperatura del producto (°C)</label>
+<input id="temperatura" class="w3-input w3-border" type="number">
+
+<label class="w3-margin-top">Fecha de recepción</label>
+<input id="fecha" class="w3-input w3-border" type="datetime-local">
+
+<label class="w3-margin-top">Estado del alimento</label>
+<select id="estado" class="w3-input w3-border">
+<option>Fresco</option>
+<option>Aceptable</option>
+<option>En mal estado</option>
+</select>
+
+<!-- 🔥 NUEVOS CHECKS SANITARIOS -->
+
+<label class="w3-margin-top">Empaque limpio</label>
+<select id="empaque" class="w3-input w3-border">
+<option>Correcto</option>
+<option>Incorrecto</option>
+</select>
+
+<label class="w3-margin-top">Caducidad vigente</label>
+<select id="caducidad" class="w3-input w3-border">
+<option>Correcto</option>
+<option>Incorrecto</option>
+</select>
+
+<label class="w3-margin-top">Color / olor adecuado</label>
+<select id="calidad" class="w3-input w3-border">
+<option>Adecuado</option>
+<option>Inadecuado</option>
+</select>
+
+<label class="w3-margin-top">Envases de alimentos limpios</label>
+<select id="envases" class="w3-input w3-border">
+<option>Correcto</option>
+<option>Incorrecto</option>
+</select>
+
+<label class="w3-margin-top">Observaciones</label>
+<textarea id="observaciones" class="w3-input w3-border"></textarea>
+
+<button class="w3-button w3-blue w3-margin-top">
+Registrar
+</button>
+
+</form>
+
+</div>
+
+<br>
+
+<!-- 🔥 TABLA DINÁMICA -->
+<table class="w3-table w3-bordered w3-white" id="tablaRecepcion">
+
+<tr>
+<th>Producto</th>
+<th>Proveedor</th>
+<th>Estado</th>
+<th>Resultado</th>
+<th>Observación</th>
+</tr>
+
+</table>
+
+</div>
+
+<script src="https://code.jquery.com/jquery-3.7.1.min.js"></script>
+
+<script>
+$(function() {
+
+  function evaluarRecepcion(data){
+
+    let errores = [];
+
+    // 🔥 VALIDACIONES
+    if(data.estado === "En mal estado") errores.push("Producto en mal estado");
+    if(data.envases_limpios === "Incorrecto") errores.push("Envases sucios");
+    if(data.empaque === "Incorrecto") errores.push("Empaque contaminado");
+    if(data.caducidad === "Incorrecto") errores.push("Caducidad no vigente");
+    if(data.calidad === "Inadecuado") errores.push("Problemas de olor/color");
+
+    // 🔥 RESULTADO FINAL
+    if(errores.length > 0){
+        return {
+            resultado: '<span class="w3-tag w3-red">Rechazado</span>',
+            obs: errores.join(", ")
+        };
+    }else{
+        return {
+            resultado: '<span class="w3-tag w3-green">Aceptado</span>',
+            obs: "Cumple con normas sanitarias"
+        };
+    }
+  }
+
+  function agregarFila(data){
+
+    let evaluacion = evaluarRecepcion(data);
+
+    let fila = `
+    <tr>
+      <td>${data.producto}</td>
+      <td>${data.proveedor}</td>
+      <td>${data.estado}</td>
+      <td>${evaluacion.resultado}</td>
+      <td>${evaluacion.obs}</td>
+    </tr>
+    `;
+
+    $("#tablaRecepcion").append(fila);
+  }
+
+  // 🔥 ENVÍO AJAX
+  $('#formRecepcion').on('submit', function(event) {
+    event.preventDefault();
+
+    const data = {
+      producto: $('#producto').val(),
+      proveedor: $('#proveedor').val(),
+      temperatura: $('#temperatura').val(),
+      fecha: $('#fecha').val(),
+      estado: $('#estado').val(),
+      empaque: $('#empaque').val(),
+      caducidad: $('#caducidad').val(),
+      calidad: $('#calidad').val(),
+      envases_limpios: $('#envases').val(),
+      observaciones: $('#observaciones').val()
+    };
+
+    console.log("Datos enviados:", data);
+
+    // 🔥 AGREGAR A TABLA (FRONTEND)
+    agregarFila(data);
+
+    // 🔥 AJAX (para backend después)
+    $.ajax({
+      url: '/api/recepcion-alimentos',
+      method: 'POST',
+      contentType: 'application/json',
+      data: JSON.stringify(data),
+
+      success: function(response) {
+        console.log(response);
+      },
+
+      error: function(xhr, status, error) {
+        console.error(error);
+      }
+    });
+
+    // LIMPIAR FORM
+    $('#formRecepcion')[0].reset();
+
+  });
+
+});
+</script>
+
+</body>
+</html>

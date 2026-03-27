@@ -1,0 +1,197 @@
+<!DOCTYPE html>
+<html>
+<head>
+<title>Alertas Sanitarias - SIGCA-H</title>
+
+<link rel="stylesheet" href="https://www.w3schools.com/w3css/4/w3.css">
+
+<script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+
+<style>
+body{
+margin:0;
+font-family:Arial;
+background:#f1f1f1;
+}
+
+.sidebar{
+width:220px;
+background:#212529;
+position:fixed;
+height:100vh;
+color:white;
+}
+
+.sidebar a{
+display:block;
+color:white;
+padding:12px;
+text-decoration:none;
+}
+
+.sidebar a:hover{
+background:#343a40;
+}
+
+.content{
+margin-left:220px;
+padding:20px;
+}
+
+.alerta{
+border-left:6px solid red;
+}
+</style>
+
+</head>
+
+<body>
+
+<div class="sidebar">
+<h3 class="w3-center w3-padding">SIGCA-H</h3>
+
+<a href="SIGCA-H_W3.html">Dashboard</a>
+
+<p class="w3-small w3-padding">OPERACIÓN SANITARIA</p>
+
+<a href="Control_Temp.html">Control de Temperatura</a>
+<a href="Control_agua.html">Control de Agua</a>
+<a href="Control_higiene.html">Control de Higiene</a>
+<a href="recepcion_alimentos.html">Recepción de Alimentos</a>
+
+<p class="w3-small w3-padding">SUPERVISIÓN</p>
+
+<a href="#">Alertas Sanitarias</a>
+<a href="#">Reportes</a>
+
+</div>
+
+<div class="content">
+
+<h2>Alertas Sanitarias</h2>
+
+<div class="w3-panel w3-red">
+<p><b>Advertencia:</b> Existen controles sanitarios fuera de rango.</p>
+</div>
+
+<button id="recargar" class="w3-button w3-green w3-margin-bottom">
+Cargar / Restaurar Alertas
+</button>
+
+<table class="w3-table w3-bordered w3-white" id="tabla">
+
+<tr>
+<th>Módulo</th>
+<th>Área / Producto</th>
+<th>Problema Detectado</th>
+<th>Fecha</th>
+<th>Estado</th>
+<th>Acción</th>
+</tr>
+
+<tr class="alerta">
+<td>Temperatura</td>
+<td>Refrigerador 2</td>
+<td>Temperatura mayor a 5°C</td>
+<td>2026-03-10</td>
+<td><span class="w3-tag w3-red">Crítico</span></td>
+<td><button class="w3-button w3-blue w3-small">Ver</button></td>
+</tr>
+
+<tr class="alerta">
+<td>Recepción de alimentos</td>
+<td>Pollo crudo</td>
+<td>Temperatura de recepción incorrecta</td>
+<td>2026-03-10</td>
+<td><span class="w3-tag w3-red">Crítico</span></td>
+<td><button class="w3-button w3-blue w3-small">Ver</button></td>
+</tr>
+
+<tr class="alerta">
+<td>Control de Agua</td>
+<td>Cocina</td>
+<td>Nivel de cloro bajo</td>
+<td>2026-03-09</td>
+<td><span class="w3-tag w3-orange">Advertencia</span></td>
+<td><button class="w3-button w3-blue w3-small">Ver</button></td>
+</tr>
+
+<tr>
+<td>Higiene</td>
+<td>Empleado 3</td>
+<td>No uso de guantes</td>
+<td>2026-03-09</td>
+<td><span class="w3-tag w3-orange">Advertencia</span></td>
+<td><button class="w3-button w3-blue w3-small">Ver</button></td>
+</tr>
+
+</table>
+
+</div>
+
+<script id="datosJSON" type="application/json">
+[
+  {
+    "modulo": "Temperatura",
+    "area": "Refrigerador 5",
+    "problema": "Temperatura fuera de rango",
+    "fecha": "2026-03-11",
+    "estado": "Crítico"
+  },
+  {
+    "modulo": "Agua",
+    "area": "Lavado",
+    "problema": "Cloro insuficiente",
+    "fecha": "2026-03-11",
+    "estado": "Advertencia"
+  }
+]
+</script>
+
+<script>
+
+let estadoOriginal = true;
+let tablaOriginal = $("#tabla").html();
+
+$("#recargar").click(function(){
+
+    if(estadoOriginal){
+
+        let data = JSON.parse(document.getElementById("datosJSON").textContent);
+
+        $("#tabla tr:not(:first)").remove();
+
+        data.forEach(function(a){
+
+            let color = a.estado === "Crítico" ? "w3-red" : "w3-orange";
+
+            let fila = `
+            <tr class="alerta">
+                <td>${a.modulo}</td>
+                <td>${a.area}</td>
+                <td>${a.problema}</td>
+                <td>${a.fecha}</td>
+                <td><span class="w3-tag ${color}">${a.estado}</span></td>
+                <td>
+                    <button class="w3-button w3-blue w3-small">Ver</button>
+                </td>
+            </tr>
+            `;
+
+            $("#tabla").append(fila);
+        });
+
+        estadoOriginal = false;
+
+    } else {
+
+        $("#tabla").html(tablaOriginal);
+        estadoOriginal = true;
+    }
+
+});
+
+</script>
+
+</body>
+</html>

@@ -1,0 +1,116 @@
+<!DOCTYPE html> 
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<title>SIGCA - Login</title>
+
+<link rel="stylesheet" href="https://www.w3schools.com/w3css/4/w3.css">
+
+<script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+
+<style>
+body{
+    background: linear-gradient(135deg,#0d6efd,#0dcaf0);
+    height:100vh;
+    margin:0;
+}
+
+.login-container{
+    height:100vh;
+    display:flex;
+    justify-content:center;
+    align-items:center;
+}
+
+.login-card{
+    width:350px;
+    border-radius:15px;
+    box-shadow:0 10px 30px rgba(0,0,0,0.2);
+}
+</style>
+
+</head>
+<body>
+
+<div class="login-container">
+
+    <div class="w3-card w3-white w3-padding-large login-card">
+
+        <h3 class="w3-center">SIGCA</h3>
+
+        <p class="w3-center w3-text-grey">
+            Sistema de Control de Calidad Alimentaria
+        </p>
+
+        <form id="formLogin">
+
+            <label>Correo</label>
+            <input id="correo" class="w3-input w3-border w3-margin-bottom" type="email" required>
+
+            <label>Contraseña</label>
+            <input id="password" class="w3-input w3-border w3-margin-bottom" type="password" required>
+
+            <button class="w3-button w3-blue w3-block w3-margin-top">
+                Iniciar Sesión
+            </button>
+
+        </form>
+
+        <p id="mensaje" class="w3-center w3-margin-top"></p>
+
+    </div>
+
+</div>
+
+<script>
+
+$(document).ready(function(){
+
+    $("#formLogin").submit(function(e){
+        e.preventDefault();
+
+        let correo = $("#correo").val();
+        let password = $("#password").val();
+
+        if(correo === "" || password === ""){
+            $("#mensaje").html("<span class='w3-text-red'>Campos obligatorios</span>");
+            return;
+        }
+
+        $("#mensaje").html("Validando...");
+
+        fetch("login.json") 
+        .then(response => response.json())
+        .then(data => {
+
+            let usuarioValido = data.usuarios.find(u => 
+                u.correo === correo && u.password === password
+            );
+
+            if(usuarioValido){
+                $("#mensaje").html("<span class='w3-text-green'>Acceso correcto</span>");
+
+                localStorage.setItem("usuario", usuarioValido.nombre);
+
+                setTimeout(()=>{
+                    window.location.href = "dashboard.html";
+                }, 1000);
+
+            }else{
+                $("#mensaje").html("<span class='w3-text-red'>Credenciales incorrectas</span>");
+            }
+
+        })
+        .catch(error => {
+            $("#mensaje").html("<span class='w3-text-red'>Error del sistema</span>");
+            console.error(error);
+        });
+
+    });
+
+});
+
+</script>
+
+</body>
+</html>

@@ -1,0 +1,206 @@
+<!DOCTYPE html>
+<html>
+<head>
+<title>Control de Temperatura - SIGCA-H</title>
+
+<link rel="stylesheet" href="https://www.w3schools.com/w3css/4/w3.css">
+
+<script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+
+<style>
+body{
+margin:0;
+font-family: Arial;
+background:#f1f1f1;
+}
+
+.sidebar{
+width:220px;
+background:#212529;
+position:fixed;
+height:100vh;
+color:white;
+overflow-y:auto;
+}
+
+.sidebar a{
+display:block;
+color:white;
+padding:12px;
+text-decoration:none;
+}
+
+.sidebar a:hover{
+background:#343a40;
+}
+
+.content{
+margin-left:220px;
+padding:20px;
+}
+</style>
+</head>
+
+<body>
+
+<div class="sidebar">
+<h3 class="w3-center w3-padding">SIGCA-H</h3>
+
+<a href="SIGCA-H_W3.html">Dashboard</a>
+
+<p class="w3-small w3-padding">OPERACIÓN SANITARIA</p>
+
+<a href="Control_Temp.html">Control de Temperatura</a>
+<a href="Control_agua.html">Control de Agua</a>
+<a href="Control_higiene.html">Control de Higiene</a>
+<a href="recepcion_alimentos.html">Recepción de Alimentos</a>
+</div>
+
+<div class="content">
+
+<h2>Control de Temperatura</h2>
+
+<div class="w3-card w3-white w3-padding">
+
+<form id="formTemp">
+
+<label>Área</label>
+<select id="area" class="w3-input w3-border">
+<option>Refrigerador 1</option>
+<option>Refrigerador 2</option>
+<option>Congelador</option>
+<option>Almacén</option>
+</select>
+
+<label class="w3-margin-top">Temperatura (°C)</label>
+<input id="temperatura" class="w3-input w3-border" type="number">
+
+<label class="w3-margin-top">Fecha</label>
+<input id="fecha" class="w3-input w3-border" type="datetime-local">
+
+<button class="w3-button w3-blue w3-margin-top">
+Registrar
+</button>
+
+</form>
+
+<p id="mensaje"></p>
+
+</div>
+
+<br>
+
+<table class="w3-table w3-bordered w3-white" id="tablaTemp">
+
+<tr>
+<th>Área</th>
+<th>Temperatura</th>
+<th>Fecha</th>
+<th>Estado</th>
+</tr>
+
+</table>
+
+</div>
+
+<script>
+
+$(document).ready(function(){
+
+    function cargarDatos(){
+        let datos = JSON.parse(localStorage.getItem("temperaturas")) || [];
+
+        $("#tablaTemp tr:gt(0)").remove();
+
+        datos.forEach(d => {
+            agregarFila(d.area, d.temperatura, d.fecha);
+        });
+    }
+
+    function agregarFila(area, temp, fecha){
+
+        let estado = evaluarEstado(area, temp);
+
+        let fila = `
+        <tr>
+            <td>${area}</td>
+            <td>${temp}°C</td>
+            <td>${fecha}</td>
+            <td>${estado}</td>
+        </tr>
+        `;
+
+        $("#tablaTemp").append(fila);
+    }
+
+    function evaluarEstado(area, temp){
+
+        temp = parseFloat(temp);
+
+        if(area.includes("Congelador")){
+            if(temp <= -18){
+                return '<span class="w3-tag w3-green">Correcto</span>';
+            }else{
+                return '<span class="w3-tag w3-red">Alerta</span>';
+            }
+        }
+
+        if(area.includes("Refrigerador")){
+            if(temp >= 0 && temp <= 5){
+                return '<span class="w3-tag w3-green">Correcto</span>';
+            }else{
+                return '<span class="w3-tag w3-red">Alerta</span>';
+            }
+        }
+
+        return '<span class="w3-tag w3-yellow">Revisión</span>';
+    }
+
+    $("#formTemp").submit(function(e){
+        e.preventDefault();
+
+        let area = $("#area").val();
+        let temp = $("#temperatura").val();
+        let fecha = $("#fecha").val();
+
+        if(temp === "" || fecha === ""){
+            $("#mensaje").html("<span class='w3-text-red'>Campos obligatorios</span>");
+            return;
+        }
+
+        $("#mensaje").html("Registrando...");
+
+        fetch("guardar.json")
+        .then(() => {
+
+            let datos = JSON.parse(localStorage.getItem("temperaturas")) || [];
+
+            datos.push({
+                area: area,
+                temperatura: temp,
+                fecha: fecha
+            });
+
+            localStorage.setItem("temperaturas", JSON.stringify(datos));
+
+            agregarFila(area, temp, fecha);
+
+            $("#mensaje").html("<span class='w3-text-green'>Registro guardado</span>");
+
+            $("#formTemp")[0].reset();
+
+        })
+        .catch(()=>{
+            $("#mensaje").html("<span class='w3-text-red'>Error al guardar</span>");
+        });
+
+    });
+
+    cargarDatos();
+
+});
+
+</script>
+
+</body>
+</html>
