@@ -197,41 +197,71 @@ $(document).ready(function(){
         cargarModulo(modulo);
     });
 
-    setInterval(function(){
-
-        let temp = (Math.random() * 10).toFixed(1);
-        let alertas = Math.floor(Math.random() * 5);
-        let registros = Math.floor(Math.random() * 50);
-
-        $("#tempProm").text(temp + " °C");
-        $("#alertas").text(alertas);
-        $("#registros").text(registros);
-
-    }, 5000);
-
-    function verificarAlertas(){
-
-        $("#tablaTemp tr").each(function(){
-
-            let tempTexto = $(this).find("td").eq(1).text();
-
-            if(tempTexto){
-
-                let temp = parseFloat(tempTexto);
-
-                if(temp > 5 || temp < -18){
-                    $(this).find("span")
-                        .removeClass("w3-green")
-                        .addClass("w3-red")
-                        .text("Alerta");
+    function cargarDatos(){
+        // Cargar temperaturas
+        fetch('get-temps.php')
+            .then(response => response.json())
+            .then(datos => {
+                actualizarTablaTemperaturas(datos);
+                
+                // Calcular temperatura promedio
+                if(datos.length > 0){
+                    let suma = datos.reduce((acc, d) => acc + parseFloat(d.valor), 0);
+                    let promedio = (suma / datos.length).toFixed(1);
+                    $("#tempProm").text(promedio + " °C");
                 }
+                
+                // Calcular registros hoy
+                let hoy = new Date().toISOString().split('T')[0];
+                let registrosHoy = datos.filter(d => d.fecha.startsWith(hoy)).length;
+                $("#registros").text(registrosHoy);
+            })
+            .catch(error => console.error("Error al cargar temperaturas:", error));
+        
+        // Cargar alertas
+        fetch('alertas.php')
+            .then(response => response.json())
+            .then(datos => {
+                // Contar alertas críticas
+                let alertasCriticas = datos.filter(a => a.tipo_severidad === "Crítico").length;
+                $("#alertas").text(alertasCriticas);
+            })
+            .catch(error => console.error("Error al cargar alertas:", error));
+    }
 
-            }
-
+    function actualizarTablaTemperaturas(datos){
+        $("#tablaTemp tr:not(:first)").remove();
+        
+        // Mostrar solo los últimos 5 registros
+        let ultimos = datos.slice(0, 5);
+        
+        ultimos.forEach(d => {
+            let estado = evaluarEstadoTemp(d.valor);
+            let fila = `
+            <tr>
+                <td>${d.nombre}</td>
+                <td>${d.valor} °C</td>
+                <td>${d.fecha}</td>
+                <td><span class="w3-tag ${estado.clase}">${estado.texto}</span></td>
+            </tr>
+            `;
+            $("#tablaTemp").append(fila);
         });
     }
 
-    verificarAlertas();
+    function evaluarEstadoTemp(temp){
+        temp = parseFloat(temp);
+        
+        if(temp > 5 || temp < -18){
+            return {texto: "Alerta", clase: "w3-red"};
+        }
+        return {texto: "Correcto", clase: "w3-green"};
+    }
+
+    setInterval(cargarDatos, 30000);
+
+    // Cargar datos al iniciar la página
+    cargarDatos();
 
     $("#logout").click(function(){
         alert("Sesión cerrada");

@@ -107,18 +107,24 @@ Registrar
 
 $(document).ready(function(){
 
+    // Cargar datos desde la base de datos
     function cargarDatos(){
-        let datos = JSON.parse(localStorage.getItem("temperaturas")) || [];
-
-        $("#tablaTemp tr:gt(0)").remove();
-
-        datos.forEach(d => {
-            agregarFila(d.area, d.temperatura, d.fecha);
-        });
+        fetch('get-temps.php')
+            .then(response => response.json())
+            .then(datos => {
+                $("#tablaTemp tr:gt(0)").remove();
+                
+                datos.forEach(d => {
+                    agregarFila(d.nombre, d.valor, d.fecha);
+                });
+            })
+            .catch(error => {
+                console.error("Error al cargar datos:", error);
+                $("#mensaje").html("<span class='w3-text-red'>Error al cargar datos</span>");
+            });
     }
 
     function agregarFila(area, temp, fecha){
-
         let estado = evaluarEstado(area, temp);
 
         let fila = `
@@ -133,27 +139,30 @@ $(document).ready(function(){
         $("#tablaTemp").append(fila);
     }
 
-    function evaluarEstado(area, temp){
-
+    async function evaluarEstado(area, temp){
         temp = parseFloat(temp);
 
-        if(area.includes("Congelador")){
-            if(temp <= -18){
-                return '<span class="w3-tag w3-green">Correcto</span>';
-            }else{
+        try {
+            let res = await fetch(`backend.php?area=${area}`);
+            let param = await res.json();
+
+            if(!param){
+                return '<span class="w3-tag w3-yellow">Sin datos</span>';
+            }
+
+            if(param.temp_min !== null && temp < param.temp_min){
                 return '<span class="w3-tag w3-red">Alerta</span>';
             }
-        }
 
-        if(area.includes("Refrigerador")){
-            if(temp >= 0 && temp <= 5){
-                return '<span class="w3-tag w3-green">Correcto</span>';
-            }else{
+            if(param.temp_max !== null && temp > param.temp_max){
                 return '<span class="w3-tag w3-red">Alerta</span>';
             }
-        }
 
-        return '<span class="w3-tag w3-yellow">Revisión</span>';
+            return '<span class="w3-tag w3-green">Correcto</span>';
+        } catch(error) {
+            console.error("Error al evaluar estado:", error);
+            return '<span class="w3-tag w3-yellow">Error</span>';
+        }
     }
 
     $("#formTemp").submit(function(e){
@@ -161,42 +170,48 @@ $(document).ready(function(){
 
         let area = $("#area").val();
         let temp = $("#temperatura").val();
-        let fecha = $("#fecha").val();
 
-        if(temp === "" || fecha === ""){
+        if(temp === ""){
             $("#mensaje").html("<span class='w3-text-red'>Campos obligatorios</span>");
             return;
         }
 
         $("#mensaje").html("Registrando...");
 
-        fetch("guardar.json")
-        .then(() => {
-
-            let datos = JSON.parse(localStorage.getItem("temperaturas")) || [];
-
-            datos.push({
+        // Enviar datos a guardado_temp.php
+        fetch("guardado_temp.php", {
+            method: "POST",
+            headers: {
+                "Content-Type": "application/json"
+            },
+            body: JSON.stringify({
                 area: area,
-                temperatura: temp,
-                fecha: fecha
-            });
-
-            localStorage.setItem("temperaturas", JSON.stringify(datos));
-
-            agregarFila(area, temp, fecha);
-
-            $("#mensaje").html("<span class='w3-text-green'>Registro guardado</span>");
-
-            $("#formTemp")[0].reset();
-
+                temp: temp
+            })
         })
-        .catch(()=>{
+        .then(response => response.json())
+        .then(result => {
+            if(result.status === "ok"){
+                $("#mensaje").html("<span class='w3-text-green'>Registro guardado correctamente</span>");
+                $("#formTemp")[0].reset();
+                
+                // Recargar datos después de 1 segundo
+                setTimeout(cargarDatos, 1000);
+            } else {
+                $("#mensaje").html("<span class='w3-text-red'>Error al guardar</span>");
+            }
+        })
+        .catch(error => {
+            console.error("Error:", error);
             $("#mensaje").html("<span class='w3-text-red'>Error al guardar</span>");
         });
-
     });
 
+    // Cargar datos al iniciar
     cargarDatos();
+    
+    // Recargar datos cada 30 segundos
+    setInterval(cargarDatos, 30000);
 
 });
 

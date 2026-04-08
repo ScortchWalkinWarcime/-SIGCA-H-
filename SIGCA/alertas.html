@@ -130,66 +130,68 @@ Cargar / Restaurar Alertas
 </div>
 
 <script id="datosJSON" type="application/json">
-[
-  {
-    "modulo": "Temperatura",
-    "area": "Refrigerador 5",
-    "problema": "Temperatura fuera de rango",
-    "fecha": "2026-03-11",
-    "estado": "Crítico"
-  },
-  {
-    "modulo": "Agua",
-    "area": "Lavado",
-    "problema": "Cloro insuficiente",
-    "fecha": "2026-03-11",
-    "estado": "Advertencia"
-  }
-]
+[]
 </script>
 
 <script>
 
 let estadoOriginal = true;
-let tablaOriginal = $("#tabla").html();
+let tablaOriginal = null;
+
+function cargarAlertas(){
+    fetch('alertas.php')
+        .then(response => response.json())
+        .then(data => {
+            // Guardar estado original
+            if(estadoOriginal){
+                tablaOriginal = $("#tabla").html();
+            }
+
+            $("#tabla tr:not(:first)").remove();
+
+            data.forEach(function(a){
+                let color = a.tipo_severidad === "Crítico" ? "w3-red" : "w3-orange";
+
+                let fila = `
+                <tr class="alerta">
+                    <td>${a.modulo || a.tipo || 'N/A'}</td>
+                    <td>${a.area || a.ubicacion || 'N/A'}</td>
+                    <td>${a.descripcion || a.problema || 'N/A'}</td>
+                    <td>${a.fecha}</td>
+                    <td><span class="w3-tag ${color}">${a.tipo_severidad || a.estado || 'N/A'}</span></td>
+                    <td>
+                        <button class="w3-button w3-blue w3-small" onclick="verDetalle(${a.id_alerta})">Ver</button>
+                    </td>
+                </tr>
+                `;
+
+                $("#tabla").append(fila);
+            });
+        })
+        .catch(error => {
+            console.error("Error al cargar alertas:", error);
+        });
+}
 
 $("#recargar").click(function(){
-
     if(estadoOriginal){
-
-        let data = JSON.parse(document.getElementById("datosJSON").textContent);
-
-        $("#tabla tr:not(:first)").remove();
-
-        data.forEach(function(a){
-
-            let color = a.estado === "Crítico" ? "w3-red" : "w3-orange";
-
-            let fila = `
-            <tr class="alerta">
-                <td>${a.modulo}</td>
-                <td>${a.area}</td>
-                <td>${a.problema}</td>
-                <td>${a.fecha}</td>
-                <td><span class="w3-tag ${color}">${a.estado}</span></td>
-                <td>
-                    <button class="w3-button w3-blue w3-small">Ver</button>
-                </td>
-            </tr>
-            `;
-
-            $("#tabla").append(fila);
-        });
-
+        cargarAlertas();
         estadoOriginal = false;
-
     } else {
-
         $("#tabla").html(tablaOriginal);
         estadoOriginal = true;
     }
-
 });
+
+function verDetalle(id){
+    alert("Ver detalle de la alerta ID: " + id);
+}
+
+// Cargar alertas al iniciar
+cargarAlertas();
+
+// Recargar alertas cada 60 segundos
+setInterval(cargarAlertas, 60000);
 
 </script>
 

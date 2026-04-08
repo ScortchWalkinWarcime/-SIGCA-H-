@@ -117,10 +117,17 @@ Registrar
 <script>
 $(function() {
 
-  // Precarga (opcional)
-  $.get('/api/control-agua', function(records) {
-    console.log('Registros cargados:', records);
-  });
+  // Cargar registros de agua
+  function cargarRegistrosAgua() {
+    fetch('get-agua.php')
+      .then(response => response.json())
+      .then(records => {
+        console.log('Registros cargados:', records);
+      })
+      .catch(error => {
+        console.error('Error al cargar registros:', error);
+      });
+  }
 
   // Envío del formulario
   $('#formAgua').on('submit', function(event) {
@@ -140,24 +147,33 @@ $(function() {
 
     console.log("Datos enviados:", data);
 
-    $.ajax({
-      url: '/api/control-agua',
+    fetch('guardado_agua.php', {
       method: 'POST',
-      contentType: 'application/json',
-      data: JSON.stringify(data),
-
-      success: function(response) {
-        alert('Registro de agua guardado correctamente');
-        console.log(response);
+      headers: {
+        'Content-Type': 'application/json'
       },
-
-      error: function(xhr, status, error) {
-        alert('Error al enviar datos');
-        console.error(error);
+      body: JSON.stringify(data)
+    })
+    .then(response => response.json())
+    .then(result => {
+      if(result.status === 'ok') {
+        alert('Registro de agua guardado correctamente');
+        console.log(result);
+        document.getElementById('formAgua').reset();
+        cargarRegistrosAgua();
+      } else {
+        alert('Error al enviar datos: ' + (result.message || 'Error desconocido'));
       }
+    })
+    .catch(error => {
+      alert('Error al enviar datos');
+      console.error(error);
     });
 
   });
+
+  // Cargar registros al iniciar
+  cargarRegistrosAgua();
 
 });
 </script>

@@ -139,49 +139,34 @@ Registrar
 <script>
 $(function() {
 
-  function evaluarRecepcion(data){
-
-    let errores = [];
-
-    // 🔥 VALIDACIONES
-    if(data.estado === "En mal estado") errores.push("Producto en mal estado");
-    if(data.envases_limpios === "Incorrecto") errores.push("Envases sucios");
-    if(data.empaque === "Incorrecto") errores.push("Empaque contaminado");
-    if(data.caducidad === "Incorrecto") errores.push("Caducidad no vigente");
-    if(data.calidad === "Inadecuado") errores.push("Problemas de olor/color");
-
-    // 🔥 RESULTADO FINAL
-    if(errores.length > 0){
-        return {
-            resultado: '<span class="w3-tag w3-red">Rechazado</span>',
-            obs: errores.join(", ")
-        };
-    }else{
-        return {
-            resultado: '<span class="w3-tag w3-green">Aceptado</span>',
-            obs: "Cumple con normas sanitarias"
-        };
-    }
+  function cargarRegistrosRecepcion(){
+    fetch('get-recepcion.php')
+      .then(response => response.json())
+      .then(registros => {
+        console.log('Registros cargados:', registros);
+        
+        // Cargar registros en la tabla
+        $("#tablaRecepcion tr:not(:first)").remove();
+        
+        registros.forEach(r => {
+          let fila = `
+          <tr>
+            <td>${r.producto}</td>
+            <td>${r.proveedor}</td>
+            <td>${r.estado}</td>
+            <td><span class="w3-tag ${r.resultado === 'ACEPTADO' ? 'w3-green' : 'w3-red'}">${r.resultado}</span></td>
+            <td>${r.observaciones}</td>
+          </tr>
+          `;
+          $("#tablaRecepcion").append(fila);
+        });
+      })
+      .catch(error => {
+        console.error('Error al cargar registros:', error);
+      });
   }
 
-  function agregarFila(data){
-
-    let evaluacion = evaluarRecepcion(data);
-
-    let fila = `
-    <tr>
-      <td>${data.producto}</td>
-      <td>${data.proveedor}</td>
-      <td>${data.estado}</td>
-      <td>${evaluacion.resultado}</td>
-      <td>${evaluacion.obs}</td>
-    </tr>
-    `;
-
-    $("#tablaRecepcion").append(fila);
-  }
-
-  // 🔥 ENVÍO AJAX
+  // 🔥 ENVÍO DEL FORMULARIO
   $('#formRecepcion').on('submit', function(event) {
     event.preventDefault();
 
@@ -189,40 +174,43 @@ $(function() {
       producto: $('#producto').val(),
       proveedor: $('#proveedor').val(),
       temperatura: $('#temperatura').val(),
-      fecha: $('#fecha').val(),
       estado: $('#estado').val(),
       empaque: $('#empaque').val(),
       caducidad: $('#caducidad').val(),
       calidad: $('#calidad').val(),
-      envases_limpios: $('#envases').val(),
+      envases: $('#envases').val(),
       observaciones: $('#observaciones').val()
     };
 
     console.log("Datos enviados:", data);
 
-    // 🔥 AGREGAR A TABLA (FRONTEND)
-    agregarFila(data);
-
-    // 🔥 AJAX (para backend después)
-    $.ajax({
-      url: '/api/recepcion-alimentos',
+    fetch('guardado_recepcion.php', {
       method: 'POST',
-      contentType: 'application/json',
-      data: JSON.stringify(data),
-
-      success: function(response) {
-        console.log(response);
+      headers: {
+        'Content-Type': 'application/json'
       },
-
-      error: function(xhr, status, error) {
-        console.error(error);
+      body: JSON.stringify(data)
+    })
+    .then(response => response.json())
+    .then(result => {
+      if(result.status === 'ok') {
+        alert('Recepción de alimentos registrada: ' + result.resultado);
+        console.log(result);
+        document.getElementById('formRecepcion').reset();
+        cargarRegistrosRecepcion();
+      } else {
+        alert('Error al registrar: ' + (result.message || 'Error desconocido'));
       }
+    })
+    .catch(error => {
+      console.error(error);
+      alert('Error al enviar datos');
     });
 
-    // LIMPIAR FORM
-    $('#formRecepcion')[0].reset();
-
   });
+
+  // Cargar registros al iniciar
+  cargarRegistrosRecepcion();
 
 });
 </script>
