@@ -79,28 +79,32 @@ $(document).ready(function(){
 
         $("#mensaje").html("Validando...");
 
-        fetch("login.json") 
-        .then(response => response.json())
+     fetch("login.php", {
+    method: "POST",
+    headers: {
+        "Content-Type": "application/json"
+    },
+    body: JSON.stringify({
+        correo: correo,
+        password: password
+    })
+})
         .then(data => {
 
-            let usuarioValido = data.usuarios.find(u => 
-                u.correo === correo && u.password === password
-            );
+    if(data.status === "ok"){
+        $("#mensaje").html("<span class='w3-text-green'>Acceso correcto</span>");
 
-            if(usuarioValido){
-                $("#mensaje").html("<span class='w3-text-green'>Acceso correcto</span>");
+        localStorage.setItem("usuario", data.usuario);
 
-                localStorage.setItem("usuario", usuarioValido.nombre);
+        setTimeout(()=>{
+            window.location.href = "SIGCA_H_W3.html";
+        }, 1000);
 
-                setTimeout(()=>{
-                    window.location.href = "dashboard.html";
-                }, 1000);
+    }else{
+        $("#mensaje").html("<span class='w3-text-red'>Credenciales incorrectas</span>");
+    }
 
-            }else{
-                $("#mensaje").html("<span class='w3-text-red'>Credenciales incorrectas</span>");
-            }
-
-        })
+})
         .catch(error => {
             $("#mensaje").html("<span class='w3-text-red'>Error del sistema</span>");
             console.error(error);

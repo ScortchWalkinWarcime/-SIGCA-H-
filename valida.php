@@ -47,7 +47,7 @@ class Apimanejador {
 
                     $this->response["status"] = "ok";
 
-                    $_SESSION['n_usuario'] = $user['nombre'] ?? "Diego Gutierrez Vergara";
+                    $_SESSION['n_usuario'] = $user['nombre'] ?? "";
                 } else {
                     $this->response["message"] = "Usuario o contraseña incorrectos";
                 }
