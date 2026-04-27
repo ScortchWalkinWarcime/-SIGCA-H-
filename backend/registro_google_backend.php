@@ -3,6 +3,12 @@ session_start();
 require_once __DIR__ . '/../database/database.php';
 require_once __DIR__ . '/roles_config.php';
 
+if (!function_exists('get_user_role')) {
+    function get_user_role($correo, $userId = null) {
+        return 'user';
+    }
+}
+
 $data = json_decode(file_get_contents("php://input"), true);
 
 $nombre = trim($data['nombre'] ?? '');

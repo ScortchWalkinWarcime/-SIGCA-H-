@@ -157,36 +157,20 @@ $(".menu").click(function(e){
 });
 
 // cargar datos
-function cargarDatos(){
+async function cargarDatos(){
+       try {
+        let res = await fetch('backend/obtener_temp.php');
+        let data = await response.json();
+        
+        $("#tablaTemp tr:gt(0)").remove();
 
-fetch('get-temps.php')
-.then(r=>r.json())
-.then(res=>{
-    if(res.status==="ok"){
-        let d = res.data;
-
-        $("#tablaTemp tr:not(:first)").remove();
-
-        d.slice(0,5).forEach(x=>{
-            let estado = x.valor>5||x.valor<-18 ? "w3-red" : "w3-green";
-            $("#tablaTemp").append(`
-            <tr>
-            <td>${x.area}</td>
-            <td>${x.valor}</td>
-            <td>${x.fecha}</td>
-            <td><span class="w3-tag ${estado}">${estado==="w3-red"?"Alerta":"Correcto"}</span></td>
-            </tr>`);
-        });
-
-        let prom = d.reduce((a,b)=>a+parseFloat(b.valor),0)/d.length;
-        $("#tempProm").text(prom.toFixed(1)+" °C");
-
-        let hoy = new Date().toISOString().split('T')[0];
-        let hoyCount = d.filter(x=>x.fecha.startsWith(hoy)).length;
-        $("#registros").text(hoyCount);
+        for (let d of datos){
+            await agregarFila(d.area, d.temp, d.fecha);
+        }
+    }catch(error) {
+        console.error("Error al cargar datos:", error);
+        $("#mensaje").html("<span class='w3-text-red'>Error al cargar datos</span>");
     }
-});
-
 }
 
 // refresco

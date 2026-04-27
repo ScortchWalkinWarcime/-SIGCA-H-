@@ -108,24 +108,25 @@ Registrar
 $(document).ready(function(){
 
     // Cargar datos desde la base de datos
-    function cargarDatos(){
-        fetch('backend/get-temps.php')
-            .then(response => response.json())
-            .then(datos => {
-                $("#tablaTemp tr:gt(0)").remove();
-                
-                datos.forEach(d => {
-                    agregarFila(d.nombre, d.valor, d.fecha);
-                });
-            })
-            .catch(error => {
-                console.error("Error al cargar datos:", error);
-                $("#mensaje").html("<span class='w3-text-red'>Error al cargar datos</span>");
-            });
-    }
+    async function cargarDatos(){
+       try {
+        let res = await fetch('backend/obtener_temp.php');
+        let data = await response.json();
+        
+        $("#tablaTemp tr:gt(0)").remove();
 
-    function agregarFila(area, temp, fecha){
-        let estado = evaluarEstado(area, temp);
+        for (let d of datos){
+            await agregarFila(d.area, d.temp, d.fecha);
+        }
+    }catch(error) {
+        console.error("Error al cargar datos:", error);
+        $("#mensaje").html("<span class='w3-text-red'>Error al cargar datos</span>");
+    }
+}
+
+
+    async function agregarFila(area, temp, fecha){
+        let estado = await evaluarEstado(area, temp);
 
         let fila = `
         <tr>
@@ -140,10 +141,8 @@ $(document).ready(function(){
     }
 
     async function evaluarEstado(area, temp){
-        temp = parseFloat(temp);
-
         try {
-            let res = await fetch(`backend.php?area=${area}`);
+            let res = await fetch(`backend/get_parametros.php?area=${area}`);
             let param = await res.json();
 
             if(!param){

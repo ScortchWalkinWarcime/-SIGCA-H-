@@ -1,7 +1,6 @@
 <?php
 require_once 'gpConfig.php';
 require_once '../database/database.php';
-require_once '../backend/roles_config.php';
 
 if (isset($_GET['error'])) {
     exit('Error de Google: ' . htmlspecialchars($_GET['error']));
@@ -113,7 +112,9 @@ if (!$user) {
     // Usuario existe, hacer login
     $userId = $user[0]['cve_usuario'];
     $userName = $user[0]['nombre'];
-    $userRole = get_user_role($email, $userId);
+    $roleQuery = "SELECT rol FROM usuario WHERE cve_usuario = :userId LIMIT 1";
+    $roleResult = Database::query($roleQuery, [':userId' => $userId]);
+    $userRole = $roleResult ? $roleResult[0]['rol'] : 'usuario';
     
     $_SESSION['n_usuario'] = $userName;
     $_SESSION['user'] = [
