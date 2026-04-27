@@ -2,8 +2,8 @@
 return [
     'host' => 'localhost',
     'port' => 3306,
-    'dbname' => 'restaurante_db', // 👈 tu BD
+    'dbname' => 'restaurante_db', 
     'charset' => 'utf8mb4',
-    'user' => 'root',
-    'pass' => ''
+    'user' => 'sigca',
+    'pass' => '>s2mjAf?:vhQ68s'
 ];

@@ -1,5 +1,7 @@
 <?php
 require_once 'gpConfig.php';
+require_once '../database/database.php';
+require_once '../backend/roles_config.php';
 
 if (isset($_GET['error'])) {
     exit('Error de Google: ' . htmlspecialchars($_GET['error']));
@@ -93,17 +95,36 @@ $email = $userData['email'] ?? '';
 $name = $userData['name'] ?? '';
 $picture = $userData['picture'] ?? '';
 
-//consulta
+// Verificar si el usuario ya existe
+$sql = "SELECT cve_usuario, nombre FROM usuario WHERE correo = :correo LIMIT 1";
+$user = Database::query($sql, [':correo' => $email]);
 
-/* Aquí haces tu login local */
-$_SESSION['user'] = [
-    'google_id' => $googleId,
-    'email' => $email,
-    'name' => $name,
-    'picture' => $picture
-];
-
-//redireccion
-
-header('Location: ../Control_Temp.html');
-exit();
+if (!$user) {
+    // Usuario no existe, redirigir a registro con datos de Google
+    $_SESSION['google_user_data'] = [
+        'google_id' => $googleId,
+        'email' => $email,
+        'name' => $name,
+        'picture' => $picture
+    ];
+    header('Location: ../backend/registro_google.php');
+    exit();
+} else {
+    // Usuario existe, hacer login
+    $userId = $user[0]['cve_usuario'];
+    $userName = $user[0]['nombre'];
+    $userRole = get_user_role($email, $userId);
+    
+    $_SESSION['n_usuario'] = $userName;
+    $_SESSION['user'] = [
+        'google_id' => $googleId,
+        'email' => $email,
+        'name' => $userName,
+        'picture' => $picture,
+        'cve_usuario' => $userId,
+        'rol' => $userRole
+    ];
+    
+    header('Location: ../backend/login_success.php');
+    exit();
+}

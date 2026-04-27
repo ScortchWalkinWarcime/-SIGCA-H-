@@ -1,5 +1,5 @@
 <?php
-require_once __DIR__ . '/database/database.php';
+require_once __DIR__ . '/../database/database.php';
 
 $sql = "
 SELECT ct.cve_temp, ct.valor, ct.fecha, a.nombre AS area

@@ -5,6 +5,7 @@
 <title>SIGCA - Login</title>
 
 <link rel="stylesheet" href="https://www.w3schools.com/w3css/4/w3.css">
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/4.7.0/css/font-awesome.min.css">
 
 <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
 
@@ -56,6 +57,13 @@ body{
 
         </form>
 
+        <div class="w3-center w3-margin-top">
+            <p class="w3-text-grey">O</p>
+            <a href="backend/login-google.php" class="w3-button w3-red w3-block">
+                <i class="fa fa-google" style="margin-right: 10px;"></i>Iniciar Sesión con Google
+            </a>
+        </div>
+
         <p id="mensaje" class="w3-center w3-margin-top"></p>
 
     </div>
@@ -79,7 +87,7 @@ $(document).ready(function(){
 
         $("#mensaje").html("Validando...");
 
-     fetch("login.php", {
+fetch("backend/login.php", {
     method: "POST",
     headers: {
         "Content-Type": "application/json"
@@ -89,15 +97,25 @@ $(document).ready(function(){
         password: password
     })
 })
-        .then(data => {
+.then(response => response.json())
+.then(data => {
 
     if(data.status === "ok"){
         $("#mensaje").html("<span class='w3-text-green'>Acceso correcto</span>");
 
         localStorage.setItem("usuario", data.usuario);
+        localStorage.setItem("cve_usuario", data.cve_usuario);
+        localStorage.setItem("rol", data.rol);
+
+        let dashboard = "backend/SIGCA-H_User.php";
+        if(data.rol === "admin"){
+            dashboard = "backend/SIGCA-H_Admin.php";
+        }else if(data.rol === "gerente"){
+            dashboard = "backend/SIGCA-H_Gerente.php";
+        }
 
         setTimeout(()=>{
-            window.location.href = "SIGCA_H_W3.html";
+            window.location.href = dashboard;
         }, 1000);
 
     }else{
@@ -105,10 +123,10 @@ $(document).ready(function(){
     }
 
 })
-        .catch(error => {
-            $("#mensaje").html("<span class='w3-text-red'>Error del sistema</span>");
-            console.error(error);
-        });
+.catch(error => {
+    $("#mensaje").html("<span class='w3-text-red'>Error del sistema</span>");
+    console.error(error);
+});
 
     });
 

@@ -1,5 +1,5 @@
 <?php
-require_once __DIR__ . '/database/database.php';
+require_once __DIR__ . '/../database/database.php';
 
 $data = json_decode(file_get_contents("php://input"), true);
 

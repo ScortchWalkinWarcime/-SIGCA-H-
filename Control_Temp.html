@@ -46,7 +46,7 @@ padding:20px;
 <div class="sidebar">
 <h3 class="w3-center w3-padding">SIGCA-H</h3>
 
-<a href="SIGCA-H_W3.html">Dashboard</a>
+<a href="backend/SIGCA-H_W3.html">Dashboard</a>
 
 <p class="w3-small w3-padding">OPERACIÓN SANITARIA</p>
 
@@ -109,7 +109,7 @@ $(document).ready(function(){
 
     // Cargar datos desde la base de datos
     function cargarDatos(){
-        fetch('get-temps.php')
+        fetch('backend/get-temps.php')
             .then(response => response.json())
             .then(datos => {
                 $("#tablaTemp tr:gt(0)").remove();
@@ -179,7 +179,7 @@ $(document).ready(function(){
         $("#mensaje").html("Registrando...");
 
         // Enviar datos a guardado_temp.php
-        fetch("guardado_temp.php", {
+        fetch("backend/guardado_temp.php", {
             method: "POST",
             headers: {
                 "Content-Type": "application/json"

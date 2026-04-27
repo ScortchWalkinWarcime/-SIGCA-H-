@@ -50,7 +50,7 @@ border-left:6px solid red;
 <div class="sidebar">
 <h3 class="w3-center w3-padding">SIGCA-H</h3>
 
-<a href="SIGCA-H_W3.html">Dashboard</a>
+<a href="backend/SIGCA-H_W3.html">Dashboard</a>
 
 <p class="w3-small w3-padding">OPERACIÓN SANITARIA</p>
 
@@ -139,7 +139,7 @@ let estadoOriginal = true;
 let tablaOriginal = null;
 
 function cargarAlertas(){
-    fetch('alertas.php')
+    fetch('backend/alertas.php')
         .then(response => response.json())
         .then(data => {
             // Guardar estado original
