@@ -1,0 +1,88 @@
+<h2>Control de Temperatura</h2>
+
+<div class="w3-card w3-white w3-padding">
+
+<p class="w3-text-grey">
+Modo lectura: solo visualización de datos
+</p>
+
+</div>
+
+<br>
+
+<table class="w3-table w3-bordered w3-white" id="tablaTemp">
+<tr>
+<th>Área</th>
+<th>Temperatura</th>
+<th>Fecha</th>
+<th>Estado</th>
+</tr>
+</table>
+
+<script>
+
+async function cargarDatos(){
+    try {
+        let res = await fetch('backend/obtener_temp.php');
+        let datos = await res.json();
+
+        $("#tablaTemp tr:gt(0)").remove();
+
+        for (let d of datos){
+            await agregarFila(d.area, d.temp, d.fecha);
+        }
+
+    } catch(error){
+        console.error("Error al cargar datos:", error);
+    }
+}
+
+async function agregarFila(area, temp, fecha){
+    let estado = await evaluarEstado(area, temp);
+
+    let fila = `
+    <tr>
+        <td>${area}</td>
+        <td>${temp}°C</td>
+        <td>${fecha}</td>
+        <td>${estado}</td>
+    </tr>
+    `;
+
+    $("#tablaTemp").append(fila);
+}
+
+async function evaluarEstado(area, temp){
+    try {
+        let res = await fetch(`backend/get_parametros.php?area=${area}`);
+        let param = await res.json();
+
+        temp = parseFloat(temp);
+
+        if(!param){
+            return '<span class="w3-tag w3-yellow">Sin datos</span>';
+        }
+
+        if(param.temp_min !== null && temp < param.temp_min){
+            return '<span class="w3-tag w3-red">Alerta</span>';
+        }
+
+        if(param.temp_max !== null && temp > param.temp_max){
+            return '<span class="w3-tag w3-red">Alerta</span>';
+        }
+
+        return '<span class="w3-tag w3-green">Correcto</span>';
+
+    } catch(error){
+        console.error(error);
+        return '<span class="w3-tag w3-yellow">Error</span>';
+    }
+}
+
+// cargar al iniciar
+cargarDatos();
+
+// refrescar cada 30s
+setInterval(cargarDatos, 30000);
+
+</script>

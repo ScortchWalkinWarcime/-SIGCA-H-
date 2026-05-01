@@ -1,63 +1,3 @@
-<!DOCTYPE html>
-<html>
-<head>
-<title>Control de Temperatura - SIGCA-H</title>
-
-<link rel="stylesheet" href="https://www.w3schools.com/w3css/4/w3.css">
-
-<script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
-
-<style>
-body{
-margin:0;
-font-family: Arial;
-background:#f1f1f1;
-}
-
-.sidebar{
-width:220px;
-background:#212529;
-position:fixed;
-height:100vh;
-color:white;
-overflow-y:auto;
-}
-
-.sidebar a{
-display:block;
-color:white;
-padding:12px;
-text-decoration:none;
-}
-
-.sidebar a:hover{
-background:#343a40;
-}
-
-.content{
-margin-left:220px;
-padding:20px;
-}
-</style>
-</head>
-
-<body>
-
-<div class="sidebar">
-<h3 class="w3-center w3-padding">SIGCA-H</h3>
-
-<a href="backend/SIGCA-H_W3.html">Dashboard</a>
-
-<p class="w3-small w3-padding">OPERACIÓN SANITARIA</p>
-
-<a href="Control_Temp.html">Control de Temperatura</a>
-<a href="Control_agua.html">Control de Agua</a>
-<a href="Control_higiene.html">Control de Higiene</a>
-<a href="recepcion_alimentos.html">Recepción de Alimentos</a>
-</div>
-
-<div class="content">
-
 <h2>Control de Temperatura</h2>
 
 <div class="w3-card w3-white w3-padding">
@@ -73,12 +13,12 @@ padding:20px;
 </select>
 
 <label class="w3-margin-top">Temperatura (°C)</label>
-<input id="temperatura" class="w3-input w3-border" type="number">
+<input id="temperatura" class="w3-input w3-border" type="number" required>
 
-<label class="w3-margin-top">Fecha</label>
+<label class="w3-margin-top">Fecha y hora</label>
 <input id="fecha" class="w3-input w3-border" type="datetime-local">
 
-<button class="w3-button w3-blue w3-margin-top">
+<button class="w3-button w3-blue w3-margin-top guardar">
 Registrar
 </button>
 
@@ -91,130 +31,79 @@ Registrar
 <br>
 
 <table class="w3-table w3-bordered w3-white" id="tablaTemp">
-
 <tr>
 <th>Área</th>
 <th>Temperatura</th>
 <th>Fecha</th>
 <th>Estado</th>
 </tr>
-
 </table>
-
-</div>
 
 <script>
 
-$(document).ready(function(){
+async function cargarDatos(){
+    try {
+        let res = await fetch('backend/get-temps.php');
+        let json = await res.json();
 
-    // Cargar datos desde la base de datos
-    async function cargarDatos(){
-       try {
-        let res = await fetch('backend/obtener_temp.php');
-        let data = await response.json();
-        
+        if(json.status !== "ok") return;
+
+        let datos = json.data;
+
         $("#tablaTemp tr:gt(0)").remove();
 
-        for (let d of datos){
-            await agregarFila(d.area, d.temp, d.fecha);
-        }
-    }catch(error) {
-        console.error("Error al cargar datos:", error);
-        $("#mensaje").html("<span class='w3-text-red'>Error al cargar datos</span>");
+        datos.slice(0,10).forEach(d=>{
+            agregarFila(d.area, d.valor, d.fecha);
+        });
+
+    } catch(error){
+        console.error(error);
     }
 }
 
+function agregarFila(area, temp, fecha){
+    let estado = (temp > 5 || temp < -18)
+        ? '<span class="w3-tag w3-red">Alerta</span>'
+        : '<span class="w3-tag w3-green">Correcto</span>';
 
-    async function agregarFila(area, temp, fecha){
-        let estado = await evaluarEstado(area, temp);
+    let fila = `
+    <tr>
+        <td>${area}</td>
+        <td>${temp}°C</td>
+        <td>${fecha}</td>
+        <td>${estado}</td>
+    </tr>
+    `;
 
-        let fila = `
-        <tr>
-            <td>${area}</td>
-            <td>${temp}°C</td>
-            <td>${fecha}</td>
-            <td>${estado}</td>
-        </tr>
-        `;
+    $("#tablaTemp").append(fila);
+}
 
-        $("#tablaTemp").append(fila);
-    }
+$(document).on("submit", "#formTemp", function(e){
+    e.preventDefault();
 
-    async function evaluarEstado(area, temp){
-        try {
-            let res = await fetch(`backend/get_parametros.php?area=${area}`);
-            let param = await res.json();
+    let area = $("#area").val();
+    let temp = $("#temperatura").val();
+    let fecha = $("#fecha").val();
 
-            if(!param){
-                return '<span class="w3-tag w3-yellow">Sin datos</span>';
-            }
-
-            if(param.temp_min !== null && temp < param.temp_min){
-                return '<span class="w3-tag w3-red">Alerta</span>';
-            }
-
-            if(param.temp_max !== null && temp > param.temp_max){
-                return '<span class="w3-tag w3-red">Alerta</span>';
-            }
-
-            return '<span class="w3-tag w3-green">Correcto</span>';
-        } catch(error) {
-            console.error("Error al evaluar estado:", error);
-            return '<span class="w3-tag w3-yellow">Error</span>';
+    fetch("backend/guardado_temp.php", {
+        method: "POST",
+        headers: {
+            "Content-Type": "application/json"
+        },
+        body: JSON.stringify({ area, temp, fecha })
+    })
+    .then(r => r.json())
+    .then(res => {
+        if(res.status === "ok"){
+            $("#mensaje").html("<span class='w3-text-green'>Guardado</span>");
+            $("#formTemp")[0].reset();
+            cargarDatos();
+        } else {
+            $("#mensaje").html("<span class='w3-text-red'>Error</span>");
         }
-    }
-
-    $("#formTemp").submit(function(e){
-        e.preventDefault();
-
-        let area = $("#area").val();
-        let temp = $("#temperatura").val();
-
-        if(temp === ""){
-            $("#mensaje").html("<span class='w3-text-red'>Campos obligatorios</span>");
-            return;
-        }
-
-        $("#mensaje").html("Registrando...");
-
-        // Enviar datos a guardado_temp.php
-        fetch("backend/guardado_temp.php", {
-            method: "POST",
-            headers: {
-                "Content-Type": "application/json"
-            },
-            body: JSON.stringify({
-                area: area,
-                temp: temp
-            })
-        })
-        .then(response => response.json())
-        .then(result => {
-            if(result.status === "ok"){
-                $("#mensaje").html("<span class='w3-text-green'>Registro guardado correctamente</span>");
-                $("#formTemp")[0].reset();
-                
-                // Recargar datos después de 1 segundo
-                setTimeout(cargarDatos, 1000);
-            } else {
-                $("#mensaje").html("<span class='w3-text-red'>Error al guardar</span>");
-            }
-        })
-        .catch(error => {
-            console.error("Error:", error);
-            $("#mensaje").html("<span class='w3-text-red'>Error al guardar</span>");
-        });
     });
-
-    // Cargar datos al iniciar
-    cargarDatos();
-    
-    // Recargar datos cada 30 segundos
-    setInterval(cargarDatos, 30000);
-
 });
 
-</script>
+cargarDatos();
 
-</body>
-</html>
+</script>

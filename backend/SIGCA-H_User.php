@@ -31,7 +31,6 @@ body { background:#f4f6f9; margin:0; }
 <body>
 
 <div class="sidebar w3-bar-block">
-
     <h4 class="w3-center w3-padding">SIGCA-H</h4>
     <hr>
 
@@ -44,7 +43,6 @@ body { background:#f4f6f9; margin:0; }
     <a href="#" class="menu" data-modulo="Control_higiene.html">Control de Higiene</a>
     <a href="#" class="menu" data-modulo="recepcion_alimentos.html">Recepción de Alimentos</a>
     <a href="#" class="menu" data-modulo="almacenamiento.html">Almacenamiento</a>
-
 </div>
 
 <div class="main">
@@ -103,51 +101,28 @@ body { background:#f4f6f9; margin:0; }
 
 $(document).ready(function(){
 
-const rol = "user"; // Fixed for user dashboard
+const rol = "user";
 const nombre = localStorage.getItem("usuario") || "Usuario";
 
-// mostrar usuario
 $("#user-info").text(`Usuario: ${nombre} (${rol})`);
 
-// No blocking for user, they can edit
-function bloquearEdicion(){
-    // User can edit
-}
-
-// cargar módulos
 async function cargarModulo(mod){
-    if (!mod) return; // for dashboard
+    if (!mod) return;
+
     $("#contenido").html("Cargando...");
+
     try {
         let res = await fetch("/SIGCA/" + mod);
-        if (!res.ok) throw new Error("Módulo no encontrado: " + res.status + " " + res.statusText);
         let html = await res.text();
-        // Parse the HTML and extract only the .content part
+
         let parser = new DOMParser();
         let doc = parser.parseFromString(html, 'text/html');
         let content = doc.querySelector('.content');
-        if (content) {
-            $("#contenido").html(content.innerHTML);
-        } else {
-            $("#contenido").html(html); // fallback
-        }
 
-        // Execute module scripts after content is inserted
-        doc.querySelectorAll('script').forEach(oldScript => {
-            if (oldScript.src && oldScript.src.includes('jquery')) return;
-            let newScript = document.createElement('script');
-            if (oldScript.src) {
-                newScript.src = oldScript.src;
-                newScript.async = false;
-            } else {
-                newScript.textContent = oldScript.textContent;
-            }
-            document.body.appendChild(newScript);
-        });
+        $("#contenido").html(content ? content.innerHTML : html);
 
-        bloquearEdicion();
-    } catch (e) {
-        $("#contenido").html("<p>Error: " + e.message + "</p>");
+    } catch {
+        $("#contenido").html("<p>Error al cargar módulo</p>");
     }
 }
 
@@ -156,28 +131,55 @@ $(".menu").click(function(e){
     cargarModulo($(this).data("modulo"));
 });
 
-// cargar datos
+function agregarFila(area, temp, fecha){
+    let estado = (temp > 5 || temp < -18) ? "w3-red" : "w3-green";
+
+    $("#tablaTemp").append(`
+    <tr>
+        <td>${area}</td>
+        <td>${temp}</td>
+        <td>${fecha}</td>
+        <td><span class="w3-tag ${estado}">
+            ${estado === "w3-red" ? "Alerta" : "Correcto"}
+        </span></td>
+    </tr>
+    `);
+}
+
 async function cargarDatos(){
-       try {
-        let res = await fetch('backend/obtener_temp.php');
-        let data = await response.json();
-        
+    try {
+        let res = await fetch('get-temps.php');
+        let json = await res.json();
+
+        if(json.status !== "ok") return;
+
+        let datos = json.data;
+
         $("#tablaTemp tr:gt(0)").remove();
 
-        for (let d of datos){
-            await agregarFila(d.area, d.temp, d.fecha);
-        }
-    }catch(error) {
+        datos.slice(0,5).forEach(d=>{
+            agregarFila(d.area, d.valor, d.fecha);
+        });
+
+        let prom = datos.length
+            ? datos.reduce((a,b)=>a+parseFloat(b.valor),0)/datos.length
+            : 0;
+
+        $("#tempProm").text(prom.toFixed(1) + " °C");
+
+        let hoy = new Date().toISOString().split('T')[0];
+        let hoyCount = datos.filter(x=>x.fecha.startsWith(hoy)).length;
+
+        $("#registros").text(hoyCount);
+
+    } catch(error) {
         console.error("Error al cargar datos:", error);
-        $("#mensaje").html("<span class='w3-text-red'>Error al cargar datos</span>");
     }
 }
 
-// refresco
 setInterval(cargarDatos,30000);
 cargarDatos();
 
-// logout
 $("#logout").click(()=>window.location.href="logout.php");
 
 });

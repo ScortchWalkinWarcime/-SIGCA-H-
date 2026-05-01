@@ -1,17 +1,24 @@
 <?php
-include("conexion.php");
+header("Content-Type: application/json");
 
-$sql = "SELECT * FROM recepcion_alimentos ORDER BY fecha DESC";
+require_once __DIR__ . '/../database/database.php';
 
-$result = $conn->query($sql);
+try {
 
-$data = [];
+    $sql = "SELECT * FROM recepcion_alimentos ORDER BY fecha DESC";
 
-while($row = $result->fetch_assoc()){
-    $data[] = $row;
+    $res = Database::query($sql);
+
+    echo json_encode([
+        "status" => "ok",
+        "data" => $res
+    ]);
+
+} catch (Exception $e) {
+
+    echo json_encode([
+        "status" => "error",
+        "message" => $e->getMessage()
+    ]);
 }
-
-echo json_encode($data);
-
-$conn->close();
 ?>

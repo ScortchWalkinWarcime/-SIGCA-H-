@@ -7,12 +7,12 @@ if (!isset($_SESSION['n_usuario'])) {
 
 $userName = $_SESSION['n_usuario'];
 $userId = $_SESSION['user']['cve_usuario'] ?? '';
-$userRole = $_SESSION['user']['rol'] ?? 'user';
+$userRole = strtolower($_SESSION['user']['rol'] ?? 'user');
 
 // Determine dashboard based on role
 $dashboard = 'SIGCA-H_User.php'; // default
 if ($userRole === 'admin') {
-    $dashboard = 'SIGCA-H_Admin.php';
+    $dashboard = 'SIGCA-H_W3.php';
 } elseif ($userRole === 'gerente') {
     $dashboard = 'SIGCA-H_Gerente.php';
 }

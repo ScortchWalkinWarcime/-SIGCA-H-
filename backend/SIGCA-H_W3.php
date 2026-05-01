@@ -9,6 +9,7 @@ if (!isset($_SESSION['n_usuario'])) {
 <!DOCTYPE html>
 <html lang="es">
 <head>
+
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>SIGCA-H</title>
@@ -35,27 +36,26 @@ body { background:#f4f6f9; margin:0; }
     <h4 class="w3-center w3-padding">SIGCA-H</h4>
     <hr>
 
-    <a href="#" class="menu" data-modulo="dashboard.html">Dashboard</a>
+    <a href="#" class="menu" data-modulo="dashboard.php">Dashboard</a>
 
     <div class="w3-small w3-padding w3-text-grey">OPERACIÓN SANITARIA</div>
-
-    <a href="#" class="menu" data-modulo="temperatura.html">Control de Temperatura</a>
-    <a href="#" class="menu" data-modulo="agua.html">Control de Agua</a>
-    <a href="#" class="menu" data-modulo="higiene.html">Control de Higiene</a>
-    <a href="#" class="menu" data-modulo="recepcion.html">Recepción de Alimentos</a>
-    <a href="#" class="menu" data-modulo="almacenamiento.html">Almacenamiento</a>
+   <a href="#" class="menu" data-modulo="../Control_Temp.html">Control de Temperatura</a>
+    <a href="#" class="menu" data-modulo="../Control_agua.html">Control de Agua</a>
+    <a href="#" class="menu" data-modulo="../Control_higiene.html">Control de Higiene</a>
+    <a href="#" class="menu" data-modulo="../recepcion_alimentos.html">Recepción de Alimentos</a>
+    <a href="#" class="menu" data-modulo="../almacenamiento.html">Almacenamiento</a>
 
     <div class="w3-small w3-padding w3-text-grey gerente-only">MONITOREO</div>
-    <a href="#" class="menu gerente-only" data-modulo="alertas.html">Alertas</a>
+    <a href="#" class="menu gerente-only" data-modulo="../alertas.html">Alertas</a>
 
     <div class="w3-small w3-padding w3-text-grey gerente-only">AUDITORÍA</div>
-    <a href="#" class="menu gerente-only" data-modulo="reporte.html">Reporte</a>
-    <a href="#" class="menu gerente-only" data-modulo="historial.html">Historial</a>
+    <a href="#" class="menu gerente-only" data-modulo="../reporte.html">Reporte</a>
+    <a href="#" class="menu gerente-only" data-modulo="../historial.html">Historial</a>
 
     <div class="w3-small w3-padding w3-text-grey admin-only">ADMINISTRACIÓN</div>
-    <a href="#" class="menu admin-only" data-modulo="inventario.html">Inventario</a>
-    <a href="#" class="menu admin-only" data-modulo="usuarios.html">Usuarios</a>
-    <a href="#" class="menu admin-only" data-modulo="restaurantes.html">Restaurantes</a>
+    <a href="#" class="menu admin-only" data-modulo="../inventario.html">Inventario</a>
+    <a href="#" class="menu admin-only" data-modulo="../usuarios.html">Usuarios</a>
+    <a href="#" class="menu admin-only" data-modulo="../restaurantes.html">Restaurantes</a>
 
 </div>
 
@@ -125,10 +125,8 @@ $(document).ready(function(){
 const rol = localStorage.getItem("rol") || "user";
 const nombre = localStorage.getItem("usuario") || "Usuario";
 
-// mostrar usuario
 $("#user-info").text(`Usuario: ${nombre} (${rol})`);
 
-// ocultar cosas según rol
 if(rol === "user"){
     $(".admin-only").hide();
     $(".gerente-only").hide();
@@ -138,20 +136,24 @@ if(rol === "gerente"){
     $(".admin-only").hide();
 }
 
-// bloquear inputs si no es admin
 function bloquearEdicion(){
     if(rol !== "admin"){
         $("input, select, textarea, button.guardar").prop("disabled", true);
     }
 }
 
-// cargar módulos
 async function cargarModulo(mod){
     $("#contenido").html("Cargando...");
-    let res = await fetch(mod);
-    let html = await res.text();
-    $("#contenido").html(html);
-    bloquearEdicion();
+
+    try{
+        const res = await fetch(mod);
+        const html = await res.text();
+        $("#contenido").html(html);
+        bloquearEdicion();
+    }catch(e){
+        $("#contenido").html("<p class='w3-text-red'>Error al cargar módulo</p>");
+        console.error(e);
+    }
 }
 
 $(".menu").click(function(e){
@@ -159,7 +161,6 @@ $(".menu").click(function(e){
     cargarModulo($(this).data("modulo"));
 });
 
-// cargar datos
 function cargarDatos(){
 
 fetch('get-temps.php')
@@ -181,7 +182,7 @@ fetch('get-temps.php')
             </tr>`);
         });
 
-        let prom = d.reduce((a,b)=>a+parseFloat(b.valor),0)/d.length;
+        let prom = d.length ? d.reduce((a,b)=>a+parseFloat(b.valor),0)/d.length : 0;
         $("#tempProm").text(prom.toFixed(1)+" °C");
 
         let hoy = new Date().toISOString().split('T')[0];
@@ -199,11 +200,9 @@ fetch('alertas.php')
 
 }
 
-// refresco
 setInterval(cargarDatos,30000);
 cargarDatos();
 
-// logout
 $("#logout").click(()=>window.location.href="logout.php");
 
 });

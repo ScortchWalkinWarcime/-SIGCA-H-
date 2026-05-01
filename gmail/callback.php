@@ -114,7 +114,7 @@ if (!$user) {
     $userName = $user[0]['nombre'];
     $roleQuery = "SELECT rol FROM usuario WHERE cve_usuario = :userId LIMIT 1";
     $roleResult = Database::query($roleQuery, [':userId' => $userId]);
-    $userRole = $roleResult ? $roleResult[0]['rol'] : 'usuario';
+    $userRole = $roleResult ? strtolower($roleResult[0]['rol']) : 'user';
     
     $_SESSION['n_usuario'] = $userName;
     $_SESSION['user'] = [

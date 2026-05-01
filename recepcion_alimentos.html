@@ -1,60 +1,3 @@
-<!DOCTYPE html>
-<html>
-<head>
-<title>Recepción de Alimentos - SIGCA-H</title>
-<link rel="stylesheet" href="https://www.w3schools.com/w3css/4/w3.css">
-
-<style>
-body{
-margin:0;
-font-family: Arial;
-background:#f1f1f1;
-}
-
-.sidebar{
-width:220px;
-background:#212529;
-position:fixed;
-height:100vh;
-color:white;
-overflow-y:auto;
-}
-
-.sidebar a{
-display:block;
-color:white;
-padding:12px;
-text-decoration:none;
-}
-
-.sidebar a:hover{
-background:#343a40;
-}
-
-.content{
-margin-left:220px;
-padding:20px;
-}
-</style>
-</head>
-
-<body>
-
-<div class="sidebar">
-<h3 class="w3-center w3-padding">SIGCA-H</h3>
-
-<a href="backend/SIGCA-H_W3.html">Dashboard</a>
-
-<p class="w3-small w3-padding">OPERACIÓN SANITARIA</p>
-
-<a href="Control_Temp.html">Control de Temperatura</a>
-<a href="Control_agua.html">Control de Agua</a>
-<a href="Control_higiene.html">Control de Higiene</a>
-<a href="recepcion_alimentos.html">Recepción de Alimentos</a>
-</div>
-
-<div class="content">
-
 <h2>Recepción de Alimentos</h2>
 
 <div class="w3-card w3-white w3-padding">
@@ -80,8 +23,6 @@ padding:20px;
 <option>En mal estado</option>
 </select>
 
-<!-- 🔥 NUEVOS CHECKS SANITARIOS -->
-
 <label class="w3-margin-top">Empaque limpio</label>
 <select id="empaque" class="w3-input w3-border">
 <option>Correcto</option>
@@ -100,7 +41,7 @@ padding:20px;
 <option>Inadecuado</option>
 </select>
 
-<label class="w3-margin-top">Envases de alimentos limpios</label>
+<label class="w3-margin-top">Envases limpios</label>
 <select id="envases" class="w3-input w3-border">
 <option>Correcto</option>
 <option>Incorrecto</option>
@@ -109,19 +50,19 @@ padding:20px;
 <label class="w3-margin-top">Observaciones</label>
 <textarea id="observaciones" class="w3-input w3-border"></textarea>
 
-<button class="w3-button w3-blue w3-margin-top">
+<button class="w3-button w3-blue w3-margin-top guardar">
 Registrar
 </button>
 
 </form>
 
+<p id="mensaje"></p>
+
 </div>
 
 <br>
 
-<!-- 🔥 TABLA DINÁMICA -->
 <table class="w3-table w3-bordered w3-white" id="tablaRecepcion">
-
 <tr>
 <th>Producto</th>
 <th>Proveedor</th>
@@ -129,91 +70,78 @@ Registrar
 <th>Resultado</th>
 <th>Observación</th>
 </tr>
-
 </table>
 
-</div>
-
-<script src="https://code.jquery.com/jquery-3.7.1.min.js"></script>
-
 <script>
-$(function() {
 
-  function cargarRegistrosRecepcion(){
-    fetch('backend/get-recepcion.php')
-      .then(response => response.json())
-      .then(registros => {
-        console.log('Registros cargados:', registros);
-        
-        // Cargar registros en la tabla
+async function cargarRegistrosRecepcion(){
+    try{
+        let res = await fetch('backend/get-recepcion.php');
+        let registros = await res.json();
+
         $("#tablaRecepcion tr:not(:first)").remove();
-        
-        registros.forEach(r => {
-          let fila = `
-          <tr>
-            <td>${r.producto}</td>
-            <td>${r.proveedor}</td>
-            <td>${r.estado}</td>
-            <td><span class="w3-tag ${r.resultado === 'ACEPTADO' ? 'w3-green' : 'w3-red'}">${r.resultado}</span></td>
-            <td>${r.observaciones}</td>
-          </tr>
-          `;
-          $("#tablaRecepcion").append(fila);
+
+        registros.forEach(r=>{
+            let fila = `
+            <tr>
+                <td>${r.producto}</td>
+                <td>${r.proveedor}</td>
+                <td>${r.estado}</td>
+                <td>
+                    <span class="w3-tag ${r.resultado === 'ACEPTADO' ? 'w3-green' : 'w3-red'}">
+                        ${r.resultado}
+                    </span>
+                </td>
+                <td>${r.observaciones}</td>
+            </tr>`;
+            
+            $("#tablaRecepcion").append(fila);
         });
-      })
-      .catch(error => {
-        console.error('Error al cargar registros:', error);
-      });
-  }
 
-  // 🔥 ENVÍO DEL FORMULARIO
-  $('#formRecepcion').on('submit', function(event) {
-    event.preventDefault();
+    }catch(e){
+        console.error(e);
+        $("#mensaje").html("<span class='w3-text-red'>Error al cargar datos</span>");
+    }
+}
 
-    const data = {
-      producto: $('#producto').val(),
-      proveedor: $('#proveedor').val(),
-      temperatura: $('#temperatura').val(),
-      estado: $('#estado').val(),
-      empaque: $('#empaque').val(),
-      caducidad: $('#caducidad').val(),
-      calidad: $('#calidad').val(),
-      envases: $('#envases').val(),
-      observaciones: $('#observaciones').val()
+$("#formRecepcion").submit(function(e){
+    e.preventDefault();
+
+    let data = {
+        producto: $("#producto").val(),
+        proveedor: $("#proveedor").val(),
+        temperatura: $("#temperatura").val(),
+        fecha: $("#fecha").val(),
+        estado: $("#estado").val(),
+        empaque: $("#empaque").val(),
+        caducidad: $("#caducidad").val(),
+        calidad: $("#calidad").val(),
+        envases: $("#envases").val(),
+        observaciones: $("#observaciones").val()
     };
 
-    console.log("Datos enviados:", data);
+    $("#mensaje").html("Guardando...");
 
-    fetch('backend/guardado_recepcion.php', {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json'
-      },
-      body: JSON.stringify(data)
+    fetch('backend/guardado_recepcion.php',{
+        method:"POST",
+        headers:{ "Content-Type":"application/json" },
+        body: JSON.stringify(data)
     })
-    .then(response => response.json())
-    .then(result => {
-      if(result.status === 'ok') {
-        alert('Recepción de alimentos registrada: ' + result.resultado);
-        console.log(result);
-        document.getElementById('formRecepcion').reset();
-        cargarRegistrosRecepcion();
-      } else {
-        alert('Error al registrar: ' + (result.message || 'Error desconocido'));
-      }
+    .then(r=>r.json())
+    .then(res=>{
+        if(res.status==="ok"){
+            $("#mensaje").html("<span class='w3-text-green'>Guardado correctamente</span>");
+            $("#formRecepcion")[0].reset();
+            cargarRegistrosRecepcion();
+        }else{
+            $("#mensaje").html("<span class='w3-text-red'>Error al guardar</span>");
+        }
     })
-    .catch(error => {
-      console.error(error);
-      alert('Error al enviar datos');
+    .catch(()=>{
+        $("#mensaje").html("<span class='w3-text-red'>Error de conexión</span>");
     });
-
-  });
-
-  // Cargar registros al iniciar
-  cargarRegistrosRecepcion();
-
 });
-</script>
 
-</body>
-</html>
+cargarRegistrosRecepcion();
+
+</script>

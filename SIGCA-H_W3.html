@@ -1,0 +1,174 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>SIGCA-H</title>
+
+<link rel="stylesheet" href="https://www.w3schools.com/w3css/4/w3.css">
+<script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+
+<style>
+body { background:#f4f6f9; margin:0; }
+
+.sidebar {
+    height:100vh;
+    background:#212529;
+    color:#fff;
+    position:fixed;
+    width:220px;
+}
+
+.sidebar a {
+    color:white;
+    padding:12px;
+    display:block;
+    text-decoration:none;
+}
+
+.sidebar a:hover { background:#343a40; }
+
+.main { margin-left:220px; }
+
+.header {
+    background:white;
+    padding:15px;
+    border-bottom:1px solid #ddd;
+}
+
+.content { padding:20px; }
+
+.card-indicator { border-left:5px solid #2196F3; }
+</style>
+
+</head>
+<body>
+
+<!-- SIDEBAR -->
+<div class="sidebar w3-bar-block">
+
+<h4 class="w3-center w3-padding">SIGCA-H</h4>
+<hr>
+
+<a href="#" class="menu" data-modulo="dashboard.html">Dashboard</a>
+
+<div class="w3-small w3-padding w3-text-grey">OPERACIÓN SANITARIA</div>
+
+<a href="#" class="menu" data-modulo="Control_Temp.html">Temperatura</a>
+<a href="#" class="menu" data-modulo="Control_agua.html">Agua</a>
+<a href="#" class="menu" data-modulo="Control_higiene.html">Higiene</a>
+
+<div class="w3-small w3-padding w3-text-grey gerente-only">MONITOREO</div>
+<a href="#" class="menu gerente-only" data-modulo="alertas.html">Alertas</a>
+
+<div class="w3-small w3-padding w3-text-grey admin-only">ADMIN</div>
+<a href="#" class="menu admin-only" data-modulo="usuarios.html">Usuarios</a>
+
+</div>
+
+<!-- MAIN -->
+<div class="main">
+
+<div class="header w3-display-container">
+    <h5>Sistema de Gestión</h5>
+    <div class="w3-display-right">
+        <span id="user-info"></span>
+        <button id="logout" class="w3-button w3-border w3-text-red w3-small">
+            Cerrar sesión
+        </button>
+    </div>
+</div>
+
+<div class="content" id="contenido">
+    <h3>Bienvenido 👀</h3>
+</div>
+
+</div>
+
+<script>
+
+$(document).ready(function(){
+
+// sesión
+async function checkSession(){
+    try{
+        let res = await fetch('backend/session_check.php');
+        let data = await res.json();
+
+        if(!data.logged){
+            window.location.href = 'Login_W3.html';
+        }
+    }catch(e){
+        console.error(e);
+    }
+}
+
+checkSession();
+
+//usuario
+const rol = localStorage.getItem("rol") || "user";
+const nombre = localStorage.getItem("usuario") || "Usuario";
+
+$("#user-info").text(`Usuario: ${nombre} (${rol})`);
+
+// roles UI
+if(rol === "user"){
+    $(".admin-only, .gerente-only").hide();
+}
+
+if(rol === "gerente"){
+    $(".admin-only").hide();
+}
+
+// bloquear edición
+function bloquearEdicion(){
+    if(rol !== "admin"){
+        $("input, select, textarea").prop("disabled", true);
+        $(".guardar").hide();
+    }
+}
+
+//cargar módulos SIN romper layout
+async function cargarModulo(mod){
+
+    $("#contenido").html("<p>Cargando...</p>");
+
+    try{
+        const res = await fetch(mod);
+        const html = await res.text();
+
+        //quitar html/head/body si vienen
+        const temp = document.createElement('div');
+        temp.innerHTML = html;
+
+        let contenido = temp.querySelector("body");
+
+        $("#contenido").html(
+            contenido ? contenido.innerHTML : html
+        );
+
+        bloquearEdicion();
+
+    }catch(e){
+        $("#contenido").html("<p class='w3-text-red'>Error al cargar</p>");
+        console.error(e);
+    }
+}
+
+// 🎯 clicks menú
+$(".menu").click(function(e){
+    e.preventDefault();
+    cargarModulo($(this).data("modulo"));
+});
+
+// 🔓 logout
+$("#logout").click(()=>{
+    window.location.href = "backend/logout.php";
+});
+
+});
+
+</script>
+
+</body>
+</html>

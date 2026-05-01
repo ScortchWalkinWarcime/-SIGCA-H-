@@ -4,86 +4,130 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Gestión de Usuarios - SIGCA</title>
+
     <link rel="stylesheet" href="https://www.w3schools.com/w3css/4/w3.css">
     <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+
     <style>
         body {
             background-color: #f4f6f9;
             margin: 0;
             padding: 20px;
         }
-        .user-card {
-            margin-bottom: 10px;
-        }
     </style>
 </head>
+
 <body>
 
-    <div class="w3-container">
-        <h2 class="w3-center">Gestión de Usuarios y Roles</h2>
+<div class="w3-container">
 
-        <div class="w3-card w3-white w3-padding w3-margin-bottom">
-            <h3>Sistema de Roles</h3>
-            <p>Los roles se configuran en el archivo <code>roles_config.php</code></p>
-            <div class="w3-row">
-                <div class="w3-half">
-                    <h4>Administradores por Email:</h4>
-                    <ul class="w3-ul">
-                        <li>admin@sigca.com</li>
-                        <li>gerente@sigca.com</li>
-                    </ul>
-                </div>
-                <div class="w3-half">
-                    <h4>Administradores por ID:</h4>
-                    <ul class="w3-ul">
-                        <li>ID: 1</li>
-                    </ul>
-                </div>
-            </div>
-        </div>
+    <h2 class="w3-center">Gestión de Usuarios</h2>
 
-        <div class="w3-card w3-white w3-padding">
-            <h3>Lista de Usuarios</h3>
-            <div id="usuarios-list">
-                <p class="w3-center">Cargando usuarios...</p>
-            </div>
+    <div class="w3-card w3-white w3-padding w3-margin-bottom">
+        <h3>Información del sistema</h3>
+        <p>Los roles se gestionan desde el backend.</p>
+    </div>
+
+    <div class="w3-card w3-white w3-padding">
+        <h3>Lista de Usuarios</h3>
+        <div id="usuarios-list">
+            <p class="w3-center">Cargando usuarios...</p>
         </div>
     </div>
 
-    <script>
-    $(document).ready(function(){
-        // Check if user is admin
-        const userRole = localStorage.getItem("rol");
-        if (userRole !== "admin") {
-            $("#usuarios-list").html("<p class='w3-center w3-text-red'>Acceso denegado. Solo administradores pueden ver esta página.</p>");
+</div>
+
+<script>
+
+$(document).ready(function(){
+
+    // 🔐 verificar sesión REAL (no localStorage)
+    async function checkSession(){
+        try{
+            let res = await fetch("backend/session_check.php");
+            let data = await res.json();
+
+            if(!data.logged){
+                window.location.href = "Login_W3.html";
+                return null;
+            }
+
+            return data;
+
+        }catch(e){
+            console.error(e);
+            return null;
+        }
+    }
+
+    // 🔐 obtener usuario real desde backend
+    async function getUser(){
+        try{
+            let res = await fetch("backend/get_user.php");
+            return await res.json();
+        }catch(e){
+            console.error(e);
+            return null;
+        }
+    }
+
+    async function init(){
+
+        const session = await checkSession();
+        if(!session) return;
+
+        const user = await getUser();
+
+        if(!user || user.rol !== "admin"){
+            $("#usuarios-list").html(`
+                <p class='w3-center w3-text-red'>
+                    Acceso denegado. Solo administradores.
+                </p>
+            `);
             return;
         }
 
-        // Load users
         loadUsers();
 
-        function loadUsers() {
-            // For now, show role configuration info
-            $("#usuarios-list").html(`
-                <div class="w3-panel w3-pale-blue w3-leftbar w3-border-blue">
-                    <h4>Sistema de Roles Actual</h4>
-                    <p><strong>Archivo de configuración:</strong> <code>roles_config.php</code></p>
-                    <p>Para agregar más administradores, edita las arrays <code>$admin_emails</code> y <code>$admin_user_ids</code> en ese archivo.</p>
+    }
+
+    // 🔥 AQUÍ ya puedes conectar BD después
+    async function loadUsers(){
+
+        try{
+            let res = await fetch("backend/get_users.php"); // <- lo harás luego
+            let data = await res.json();
+
+            if(!data || data.length === 0){
+                $("#usuarios-list").html("<p>No hay usuarios</p>");
+                return;
+            }
+
+            let html = "";
+
+            data.forEach(u => {
+                html += `
+                <div class="w3-card w3-padding w3-margin-bottom">
+                    <p><strong>Nombre:</strong> ${u.nombre}</p>
+                    <p><strong>Email:</strong> ${u.email}</p>
+                    <p><strong>Rol:</strong> ${u.rol}</p>
                 </div>
-                <div class="w3-panel w3-pale-green w3-leftbar w3-border-green">
-                    <h4>Usuarios Administradores</h4>
-                    <p>Emails: admin@sigca.com, gerente@sigca.com</p>
-                    <p>IDs de usuario: 1</p>
-                    <p>Todos los demás usuarios tienen rol 'user'.</p>
-                </div>
-                <div class="w3-panel w3-pale-yellow w3-leftbar w3-border-yellow">
-                    <h4>Nota Importante</h4>
-                    <p>Los roles se verifican tanto por email como por ID de usuario. Si un usuario coincide con cualquiera de los criterios de admin, tendrá privilegios de administrador.</p>
-                </div>
-            `);
+                `;
+            });
+
+            $("#usuarios-list").html(html);
+
+        }catch(e){
+            console.error(e);
+            $("#usuarios-list").html("<p class='w3-text-red'>Error al cargar usuarios</p>");
         }
-    });
-    </script>
+    }
+
+    init();
+
+});
+
+</script>
 
 </body>
 </html>
