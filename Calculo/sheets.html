@@ -1,0 +1,47 @@
+
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>gs</title>
+</head>
+<body>
+    <form name="submitform" >
+        Nombres<input type="" name="Nombres">
+        apellidos <input type="" name="apellidos">
+        email <input type="" name="email">
+        telefono <input type="" name="Telefono">
+        Calle <input type="" name="Calle">
+	Apodo <input type="" name="Apodo">
+
+        <button type="submit">enviar</button>
+
+    </form>
+    <script type="text/javascript" src="js/jquery.js"></script>
+    <script type="text/javascript">
+           
+        let scriptUrl='https://script.google.com/macros/s/AKfycbxMF4skbkfe3NcfYNQI7sEygFcqDovJ6iNYPI3neP7fDo8IDVPqcHAMN7eg4b3tM56D4Q/exec';    
+   
+        let form1=document.forms['submitform'];
+           
+        form1.addEventListener("submit", e=>{
+
+            e.preventDefault();            
+
+            fetch(scriptUrl, {
+  method: 'POST',
+    mode: 'no-cors',
+    body: new FormData(form1)
+}).then(res => {
+  console.log(res);
+  form1.reset();
+  alert("datos guardados");
+}).catch(error => {
+  console.error(error);
+});        });
+       
+
+    </script>
+</body>
+</html>

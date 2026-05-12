@@ -88,6 +88,7 @@ body { background:#f4f6f9; margin:0; }
 <th>Área</th>
 <th>Temp</th>
 <th>Fecha</th>
+<input id="fecha" class="w3-input w3-border" type="datetime-local">
 <th>Estado</th>
 </tr>
 </table>

@@ -1,0 +1,147 @@
+<h2>Recepción de Alimentos</h2>
+
+<div class="w3-card w3-white w3-padding">
+
+<form id="formRecepcion">
+
+<label>Producto</label>
+<input id="producto" class="w3-input w3-border" required>
+
+<label class="w3-margin-top">Proveedor</label>
+<input id="proveedor" class="w3-input w3-border">
+
+<label class="w3-margin-top">Temperatura del producto (°C)</label>
+<input id="temperatura" class="w3-input w3-border" type="number">
+
+<label class="w3-margin-top">Fecha de recepción</label>
+<input id="fecha" class="w3-input w3-border" type="datetime-local">
+
+<label class="w3-margin-top">Estado del alimento</label>
+<select id="estado" class="w3-input w3-border">
+<option>Fresco</option>
+<option>Aceptable</option>
+<option>En mal estado</option>
+</select>
+
+<label class="w3-margin-top">Empaque limpio</label>
+<select id="empaque" class="w3-input w3-border">
+<option>Correcto</option>
+<option>Incorrecto</option>
+</select>
+
+<label class="w3-margin-top">Caducidad vigente</label>
+<select id="caducidad" class="w3-input w3-border">
+<option>Correcto</option>
+<option>Incorrecto</option>
+</select>
+
+<label class="w3-margin-top">Color / olor adecuado</label>
+<select id="calidad" class="w3-input w3-border">
+<option>Adecuado</option>
+<option>Inadecuado</option>
+</select>
+
+<label class="w3-margin-top">Envases limpios</label>
+<select id="envases" class="w3-input w3-border">
+<option>Correcto</option>
+<option>Incorrecto</option>
+</select>
+
+<label class="w3-margin-top">Observaciones</label>
+<textarea id="observaciones" class="w3-input w3-border"></textarea>
+
+<button class="w3-button w3-blue w3-margin-top guardar">
+Registrar
+</button>
+
+</form>
+
+<p id="mensaje"></p>
+
+</div>
+
+<br>
+
+<table class="w3-table w3-bordered w3-white" id="tablaRecepcion">
+<tr>
+<th>Producto</th>
+<th>Proveedor</th>
+<th>Estado</th>
+<th>Resultado</th>
+<th>Observación</th>
+</tr>
+</table>
+
+<script>
+
+async function cargarRegistrosRecepcion(){
+    try{
+        let res = await fetch('backend/get-recepcion.php');
+        let registros = await res.json();
+
+        $("#tablaRecepcion tr:not(:first)").remove();
+
+        registros.forEach(r=>{
+            let fila = `
+            <tr>
+                <td>${r.producto}</td>
+                <td>${r.proveedor}</td>
+                <td>${r.estado}</td>
+                <td>
+                    <span class="w3-tag ${r.resultado === 'ACEPTADO' ? 'w3-green' : 'w3-red'}">
+                        ${r.resultado}
+                    </span>
+                </td>
+                <td>${r.observaciones}</td>
+            </tr>`;
+            
+            $("#tablaRecepcion").append(fila);
+        });
+
+    }catch(e){
+        console.error(e);
+        $("#mensaje").html("<span class='w3-text-red'>Error al cargar datos</span>");
+    }
+}
+
+$("#formRecepcion").submit(function(e){
+    e.preventDefault();
+
+    let data = {
+        producto: $("#producto").val(),
+        proveedor: $("#proveedor").val(),
+        temperatura: $("#temperatura").val(),
+        fecha: $("#fecha").val(),
+        estado: $("#estado").val(),
+        empaque: $("#empaque").val(),
+        caducidad: $("#caducidad").val(),
+        calidad: $("#calidad").val(),
+        envases: $("#envases").val(),
+        observaciones: $("#observaciones").val()
+    };
+
+    $("#mensaje").html("Guardando...");
+
+    fetch('backend/guardado_recepcion.php',{
+        method:"POST",
+        headers:{ "Content-Type":"application/json" },
+        body: JSON.stringify(data)
+    })
+    .then(r=>r.json())
+    .then(res=>{
+        if(res.status==="ok"){
+            $("#mensaje").html("<span class='w3-text-green'>Guardado correctamente</span>");
+            $("#formRecepcion")[0].reset();
+            cargarRegistrosRecepcion();
+        }else{
+            $("#mensaje").html("<span class='w3-text-red'>Error al guardar</span>");
+        }
+    })
+    .catch(()=>{
+        $("#mensaje").html("<span class='w3-text-red'>Error de conexión</span>");
+    });
+});
+
+cargarRegistrosRecepcion();
+
+</script>
