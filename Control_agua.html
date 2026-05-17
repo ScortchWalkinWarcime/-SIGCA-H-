@@ -119,7 +119,7 @@ $(function() {
 
   // Cargar registros de agua
   function cargarRegistrosAgua() {
-    fetch('backend/get-agua.php')
+    fetch('/SIGCA/backend/get-agua.php')
       .then(response => response.json())
       .then(records => {
         console.log('Registros cargados:', records);
@@ -147,7 +147,7 @@ $(function() {
 
     console.log("Datos enviados:", data);
 
-    fetch('backend/guardado_agua.php', {
+    fetch('/SIGCA/backend/guardado_agua.php', {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json'

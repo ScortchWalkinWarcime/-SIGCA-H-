@@ -1,6 +1,5 @@
 <?php
-session_start();
-require_once __DIR__ . '/../gmail/gpConfig.php';
+require_once '../gmail/gpConfig.php';
 
 $state = bin2hex(random_bytes(16));
 $_SESSION['google_oauth_state'] = $state;

@@ -139,7 +139,7 @@ let estadoOriginal = true;
 let tablaOriginal = null;
 
 function cargarAlertas(){
-    fetch('backend/alertas.php')
+    fetch('/SIGCA/backend/alertas.php')
         .then(response => response.json())
         .then(data => {
             // Guardar estado original

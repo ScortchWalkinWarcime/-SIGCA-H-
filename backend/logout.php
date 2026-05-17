@@ -1,19 +1,13 @@
 <?php
 session_start();
+$_SESSION = [];
+if (ini_get('session.use_cookies')) {
+    $params = session_get_cookie_params();
+    setcookie(session_name(), '', time() - 42000,
+        $params['path'], $params['domain'],
+        $params['secure'], $params['httponly']
+    );
+}
 session_destroy();
-?>
-
-<!DOCTYPE html>
-<html>
-<head>
-    <title>Logout</title>
-</head>
-<body>
-    <script>
-        localStorage.removeItem("usuario");
-        localStorage.removeItem("cve_usuario");
-        localStorage.removeItem("rol");
-        window.location.href = "../Login_W3.html";
-    </script>
-</body>
-</html>
+header('Location: /SIGCA/Login_W3.html');
+exit;

@@ -203,16 +203,8 @@ fetch('get-temps.php')
 fetch('alertas.php')
 .then(r=>r.json())
 .then(d=>{
-    if (!Array.isArray(d)) {
-        console.error('alertas.php returned invalid payload', d);
-        d = [];
-    }
     let c = d.filter(x=>x.tipo_severidad==="Crítico").length;
     $("#alertas").text(c);
-})
-.catch(error => {
-    console.error('Error loading alertas:', error);
-    $("#alertas").text('0');
 });
 
 }

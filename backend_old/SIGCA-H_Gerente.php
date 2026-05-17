@@ -9,10 +9,9 @@ if (!isset($_SESSION['n_usuario'])) {
 <!DOCTYPE html>
 <html lang="es">
 <head>
-
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>SIGCA-H</title>
+<title>SIGCA-H - Gerente</title>
 
 <link rel="stylesheet" href="https://www.w3schools.com/w3css/4/w3.css">
 <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
@@ -36,33 +35,29 @@ body { background:#f4f6f9; margin:0; }
     <h4 class="w3-center w3-padding">SIGCA-H</h4>
     <hr>
 
-    <a href="#" class="menu" data-modulo="dashboard.php">Dashboard</a>
+    <a href="#" class="menu" data-modulo="">Dashboard</a>
 
     <div class="w3-small w3-padding w3-text-grey">OPERACIÓN SANITARIA</div>
-   <a href="#" class="menu" data-modulo="../Control_Temp.html">Control de Temperatura</a>
-    <a href="#" class="menu" data-modulo="../Control_agua.html">Control de Agua</a>
-    <a href="#" class="menu" data-modulo="../Control_higiene.html">Control de Higiene</a>
-    <a href="#" class="menu" data-modulo="../recepcion_alimentos.html">Recepción de Alimentos</a>
-    <a href="#" class="menu" data-modulo="../almacenamiento.html">Almacenamiento</a>
 
-    <div class="w3-small w3-padding w3-text-grey gerente-only">MONITOREO</div>
-    <a href="#" class="menu gerente-only" data-modulo="../alertas.html">Alertas</a>
+    <a href="#" class="menu" data-modulo="Control_Temp.html">Control de Temperatura</a>
+    <a href="#" class="menu" data-modulo="Control_agua.html">Control de Agua</a>
+    <a href="#" class="menu" data-modulo="Control_higiene.html">Control de Higiene</a>
+    <a href="#" class="menu" data-modulo="recepcion_alimentos.html">Recepción de Alimentos</a>
+    <a href="#" class="menu" data-modulo="almacenamiento.html">Almacenamiento</a>
 
-    <div class="w3-small w3-padding w3-text-grey gerente-only">AUDITORÍA</div>
-    <a href="#" class="menu gerente-only" data-modulo="../reporte.html">Reporte</a>
-    <a href="#" class="menu gerente-only" data-modulo="../historial.html">Historial</a>
+    <div class="w3-small w3-padding w3-text-grey">MONITOREO</div>
+    <a href="#" class="menu" data-modulo="alertas.html">Alertas</a>
 
-    <div class="w3-small w3-padding w3-text-grey admin-only">ADMINISTRACIÓN</div>
-    <a href="#" class="menu admin-only" data-modulo="../inventario.html">Inventario</a>
-    <a href="#" class="menu admin-only" data-modulo="../usuarios.html">Usuarios</a>
-    <a href="#" class="menu admin-only" data-modulo="../restaurantes.html">Restaurantes</a>
+    <div class="w3-small w3-padding w3-text-grey">AUDITORÍA</div>
+    <a href="#" class="menu" data-modulo="reporte.html">Reporte</a>
+    <a href="#" class="menu" data-modulo="historial.html">Historial</a>
 
 </div>
 
 <div class="main">
 
 <div class="header w3-display-container">
-    <h5>Sistema de Gestión</h5>
+    <h5>Sistema de Gestión - Gerente</h5>
     <div class="w3-display-right">
         <span id="user-info"></span>
         <button id="logout" class="w3-button w3-border w3-border-red w3-text-red w3-small">
@@ -82,14 +77,14 @@ body { background:#f4f6f9; margin:0; }
 </div>
 </div>
 
-<div class="w3-third gerente-only">
+<div class="w3-third">
 <div class="w3-card w3-white w3-padding card-indicator">
 <h6>Alertas</h6>
 <h3 id="alertas">--</h3>
 </div>
 </div>
 
-<div class="w3-third gerente-only">
+<div class="w3-third">
 <div class="w3-card w3-white w3-padding card-indicator">
 <h6>Registros hoy</h6>
 <h3 id="registros">--</h3>
@@ -122,46 +117,51 @@ body { background:#f4f6f9; margin:0; }
 
 $(document).ready(function(){
 
-const rol = localStorage.getItem("rol") || "user";
+const rol = "gerente"; // Fixed for gerente dashboard
 const nombre = localStorage.getItem("usuario") || "Usuario";
 
+// mostrar usuario
 $("#user-info").text(`Usuario: ${nombre} (${rol})`);
 
-if(rol === "user"){
-    $(".admin-only").hide();
-    $(".gerente-only").hide();
-}
-
-if(rol === "gerente"){
-    $(".admin-only").hide();
-}
-
+// bloquear inputs since gerente can only view
 function bloquearEdicion(){
-    if(rol !== "admin"){
-        $("input, select, textarea, button.guardar").prop("disabled", true);
-    }
+    $("input, select, textarea, button.guardar").prop("disabled", true);
 }
 
+// cargar módulos
 async function cargarModulo(mod){
+    if (!mod) return; // for dashboard
     $("#contenido").html("Cargando...");
-
-    try{
-        let url = mod;
-        if (!mod.startsWith('/') && !mod.startsWith('http')) {
-            if (mod.startsWith('../')) {
-                url = mod.replace(/^(\.\.\/)+/, '/SIGCA/');
-            } else {
-                url = '/SIGCA/' + mod;
-            }
+    try {
+        let res = await fetch("/SIGCA/" + mod);
+        if (!res.ok) throw new Error("Módulo no encontrado: " + res.status + " " + res.statusText);
+        let html = await res.text();
+        // Parse the HTML and extract only the .content part
+        let parser = new DOMParser();
+        let doc = parser.parseFromString(html, 'text/html');
+        let content = doc.querySelector('.content');
+        if (content) {
+            $("#contenido").html(content.innerHTML);
+        } else {
+            $("#contenido").html(html); // fallback
         }
 
-        const res = await fetch(url);
-        const html = await res.text();
-        $("#contenido").html(html);
+        // Execute module scripts after content is inserted
+        doc.querySelectorAll('script').forEach(oldScript => {
+            if (oldScript.src && oldScript.src.includes('jquery')) return;
+            let newScript = document.createElement('script');
+            if (oldScript.src) {
+                newScript.src = oldScript.src;
+                newScript.async = false;
+            } else {
+                newScript.textContent = oldScript.textContent;
+            }
+            document.body.appendChild(newScript);
+        });
+
         bloquearEdicion();
-    }catch(e){
-        $("#contenido").html("<p class='w3-text-red'>Error al cargar módulo</p>");
-        console.error(e);
+    } catch (e) {
+        $("#contenido").html("<p>Error: " + e.message + "</p>");
     }
 }
 
@@ -170,6 +170,7 @@ $(".menu").click(function(e){
     cargarModulo($(this).data("modulo"));
 });
 
+// cargar datos
 function cargarDatos(){
 
 fetch('get-temps.php')
@@ -191,7 +192,7 @@ fetch('get-temps.php')
             </tr>`);
         });
 
-        let prom = d.length ? d.reduce((a,b)=>a+parseFloat(b.valor),0)/d.length : 0;
+        let prom = d.reduce((a,b)=>a+parseFloat(b.valor),0)/d.length;
         $("#tempProm").text(prom.toFixed(1)+" °C");
 
         let hoy = new Date().toISOString().split('T')[0];
@@ -203,23 +204,17 @@ fetch('get-temps.php')
 fetch('alertas.php')
 .then(r=>r.json())
 .then(d=>{
-    if (!Array.isArray(d)) {
-        console.error('alertas.php returned invalid payload', d);
-        d = [];
-    }
     let c = d.filter(x=>x.tipo_severidad==="Crítico").length;
     $("#alertas").text(c);
-})
-.catch(error => {
-    console.error('Error loading alertas:', error);
-    $("#alertas").text('0');
 });
 
 }
 
+// refresco
 setInterval(cargarDatos,30000);
 cargarDatos();
 
+// logout
 $("#logout").click(()=>window.location.href="logout.php");
 
 });

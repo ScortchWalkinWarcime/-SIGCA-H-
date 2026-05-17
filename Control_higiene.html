@@ -130,7 +130,7 @@ $(function() {
 
   // Cargar registros de higiene
   function cargarRegistrosHigiene() {
-    fetch('backend/get-higiene.php')
+    fetch('/SIGCA/backend/get-higiene.php')
       .then(response => response.json())
       .then(records => {
         console.log('Registros de higiene cargados:', records);
@@ -157,7 +157,7 @@ $(function() {
 
     console.log("Datos enviados:", data);
 
-    fetch('backend/guardado_higiene.php', {
+    fetch('/SIGCA/backend/guardado_higiene.php', {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json'

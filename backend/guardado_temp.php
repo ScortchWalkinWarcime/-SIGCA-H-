@@ -1,60 +1,38 @@
 <?php
-header('Content-Type: application/json');
-
+header('Content-Type: application/json; charset=UTF-8');
 require_once __DIR__ . '/../database/database.php';
+session_start();
 
-$data = json_decode(file_get_contents("php://input"), true);
-
-$area = $data['area'] ?? null;
-$temp = $data['temp'] ?? null;
-$usuario = 1; 
-
-// VALIDACIÓN
-if (!$area || $temp === null) {
-    echo json_encode([
-        "status" => "error",
-        "message" => "Área y temperatura son requeridos"
-    ]);
+$input = json_decode(file_get_contents('php://input'), true);
+if (!$input || !isset($input['area']) || !isset($input['temp'])) {
+    http_response_code(400);
+    echo json_encode(['status' => 'error', 'message' => 'Solicitud inválida']);
     exit;
 }
 
 try {
+    $usuario = $_SESSION['cve_usuario'] ?? null;
+    $area = trim($input['area']);
+    $temp = trim($input['temp']);
+    $fecha = isset($input['fecha']) && $input['fecha'] !== '' ? date('Y-m-d', strtotime($input['fecha'])) : date('Y-m-d');
 
-    // OBTENER ID DEL ÁREA 
-    $sqlArea = "SELECT cve_area FROM areas WHERE nombre_area = :area LIMIT 1";
-    $res = Database::query($sqlArea, [':area' => $area]);
-
-    if (!$res || count($res) === 0) {
-        echo json_encode([
-            "status" => "error",
-            "message" => "Área no encontrada"
-        ]);
+    $areaRow = Database::query('SELECT cve_area FROM areas WHERE nombre = :nombre LIMIT 1', ['nombre' => $area]);
+    if (!$areaRow) {
+        http_response_code(400);
+        echo json_encode(['status' => 'error', 'message' => 'Área inválida']);
         exit;
     }
 
-    $idArea = $res[0]['cve_area'];
-
-    // INSERT
-    $sql = "INSERT INTO control_temperatura 
-            (id_area, valor, fecha, cve_usuario) 
-            VALUES (:id_area, :valor, NOW(), :cve_usuario)";
-
-    $id = Database::insert($sql, [
-        ':id_area' => $idArea,
-        ':valor' => $temp,
-        ':cve_usuario' => $usuario
+    $cve_area = $areaRow[0]['cve_area'];
+    Database::insert('INSERT INTO control_temperatura (cve_usuario, id_area, valor, fecha) VALUES (:usuario, :area, :valor, :fecha)', [
+        'usuario' => $usuario,
+        'area' => $cve_area,
+        'valor' => $temp,
+        'fecha' => $fecha
     ]);
 
-    echo json_encode([
-        "status" => "ok",
-        "message" => "Temperatura registrada",
-        "id" => $id
-    ]);
-
+    echo json_encode(['status' => 'ok']);
 } catch (Exception $e) {
-
-    echo json_encode([
-        "status" => "error",
-        "message" => "Error al guardar: " . $e->getMessage()
-    ]);
+    http_response_code(500);
+    echo json_encode(['status' => 'error', 'message' => 'Error del servidor']);
 }

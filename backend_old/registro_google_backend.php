@@ -1,10 +1,7 @@
 <?php
 session_start();
 require_once __DIR__ . '/../database/database.php';
-
-if (file_exists(__DIR__ . '/roles_config.php')) {
-    require_once __DIR__ . '/roles_config.php';
-}
+require_once __DIR__ . '/roles_config.php';
 
 if (!function_exists('get_user_role')) {
     function get_user_role($correo, $userId = null) {
@@ -19,6 +16,7 @@ $correo = trim($data['correo'] ?? '');
 $password = $data['password'] ?? '';
 $google_id = $data['google_id'] ?? '';
 
+// Validate input
 if (empty($nombre) || empty($correo) || empty($password)) {
     echo json_encode([
         "status" => "error",
@@ -44,6 +42,7 @@ if (strlen($password) < 6) {
 }
 
 try {
+    // Check if user already exists
     $sql = "SELECT cve_usuario FROM usuario WHERE correo = :correo LIMIT 1";
     $existing = Database::query($sql, [':correo' => $correo]);
 
@@ -55,6 +54,7 @@ try {
         exit;
     }
 
+    // Determine role and insert new user
     $rol = get_user_role($correo, null);
     $sql = "INSERT INTO usuario (correo, nombre, contrasena, rol) VALUES (:correo, :nombre, :password, :rol)";
     $userId = Database::insert($sql, [
@@ -64,8 +64,10 @@ try {
         ':rol' => $rol
     ]);
 
+    // Set user role from DB or fallback
     $rol = strtolower(trim($rol)) ?: get_user_role($correo, $userId);
 
+    // Set session for login
     $_SESSION['n_usuario'] = $nombre;
     $_SESSION['user'] = [
         'google_id' => $google_id,
@@ -75,6 +77,7 @@ try {
         'rol' => $rol
     ];
 
+    // Clear Google user data
     unset($_SESSION['google_user_data']);
 
     echo json_encode([
@@ -91,3 +94,4 @@ try {
         "message" => $e->getMessage()
     ]);
 }
+?>

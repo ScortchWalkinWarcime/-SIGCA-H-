@@ -23,7 +23,7 @@ Modo lectura: solo visualización de datos
 
 async function cargarDatos(){
     try {
-        let res = await fetch('backend/obtener_temp.php');
+        let res = await fetch('/SIGCA/backend/obtener_temp.php');
         let datos = await res.json();
 
         $("#tablaTemp tr:gt(0)").remove();
@@ -54,7 +54,7 @@ async function agregarFila(area, temp, fecha){
 
 async function evaluarEstado(area, temp){
     try {
-        let res = await fetch(`backend/get_parametros.php?area=${area}`);
+        let res = await fetch(`/SIGCA/backend/get_parametros.php?area=${area}`);
         let param = await res.json();
 
         temp = parseFloat(temp);

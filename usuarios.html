@@ -44,7 +44,7 @@ $(document).ready(function(){
     // 🔐 verificar sesión REAL (no localStorage)
     async function checkSession(){
         try{
-            let res = await fetch("backend/session_check.php");
+            let res = await fetch("/SIGCA/backend/session_check.php");
             let data = await res.json();
 
             if(!data.logged){
@@ -63,7 +63,7 @@ $(document).ready(function(){
     // 🔐 obtener usuario real desde backend
     async function getUser(){
         try{
-            let res = await fetch("backend/get_user.php");
+            let res = await fetch("/SIGCA/backend/get_user.php");
             return await res.json();
         }catch(e){
             console.error(e);
@@ -95,7 +95,7 @@ $(document).ready(function(){
     async function loadUsers(){
 
         try{
-            let res = await fetch("backend/get_users.php"); // <- lo harás luego
+            let res = await fetch("/SIGCA/backend/get_users.php"); // <- lo harás luego
             let data = await res.json();
 
             if(!data || data.length === 0){

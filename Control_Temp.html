@@ -43,7 +43,7 @@ Registrar
 
 async function cargarDatos(){
     try {
-        let res = await fetch('backend/get-temps.php');
+        let res = await fetch('/SIGCA/backend/get-temps.php');
         let json = await res.json();
 
         if(json.status !== "ok") return;
@@ -85,7 +85,7 @@ $(document).on("submit", "#formTemp", function(e){
     let temp = $("#temperatura").val();
     let fecha = $("#fecha").val();
 
-    fetch("backend/guardado_temp.php", {
+    fetch("/SIGCA/backend/guardado_temp.php", {
         method: "POST",
         headers: {
             "Content-Type": "application/json"

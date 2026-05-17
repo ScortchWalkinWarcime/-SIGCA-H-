@@ -1,64 +1,59 @@
 <?php
-header("Content-Type: application/json");
-
+header('Content-Type: application/json; charset=UTF-8');
 require_once __DIR__ . '/../database/database.php';
+session_start();
 
-$data = json_decode(file_get_contents("php://input"), true);
-
-// Mapear datos del frontend a tu DB
-$manos_limpias = $data['lavado_manos'] ?? null;
-$uniforme = $data['uniforme'] ?? null;
-$cofia = $data['cofia'] ?? null;
-$sinjoyeria = $data['sinjoyeria'] ?? null;
-
-// Lógica simple de incumplimiento
-$incumplimiento = 0;
-if (
-    $manos_limpias !== "Correcto" ||
-    $uniforme !== "Correcto" ||
-    $cofia !== "Correcto" ||
-    $sinjoyeria !== "Correcto"
-) {
-    $incumplimiento = 1;
-}
-
-$usuario = 1;
-
-// Validación
-if (!$manos_limpias || !$uniforme || !$cofia) {
-    echo json_encode([
-        "status" => "error",
-        "message" => "Faltan datos obligatorios"
-    ]);
+$input = json_decode(file_get_contents('php://input'), true);
+if (!$input || !isset($input['lavado_manos']) || !isset($input['guantes']) || !isset($input['cubrebocas']) || !isset($input['uniforme']) || !isset($input['cofia']) || !isset($input['epp'])) {
+    http_response_code(400);
+    echo json_encode(['status' => 'error', 'message' => 'Solicitud inválida']);
     exit;
 }
 
 try {
+    $usuario = $_SESSION['cve_usuario'] ?? null;
+    $fecha = date('Y-m-d H:i:s');
+    $manos_limpias = strtolower(trim($input['lavado_manos'])) === 'correcto' ? 1 : 0;
+    $uniforme = trim($input['uniforme']);
+    $cofia = trim($input['cofia']);
+    $guantes = trim($input['guantes']);
+    $cubrebocas = trim($input['cubrebocas']);
+    $observaciones = trim($input['observaciones'] ?? '');
 
-    $sql = "INSERT INTO control_higiene 
-    (manos_limpias, uniforme, cofia, sinjoyeria, incumplimiento, fecha, cve_usuario)
-    VALUES 
-    (:manos, :uniforme, :cofia, :sinjoyeria, :incumplimiento, NOW(), :usuario)";
+    $issues = [];
+    if (strtolower($input['epp']) !== 'correcto') {
+        $issues[] = 'EPP incompleto';
+    }
+    if (strtolower($input['cabello'] ?? '') !== 'correcto') {
+        $issues[] = 'Cabello no recogido';
+    }
+    if (strtolower($input['lavado_manos']) !== 'correcto') {
+        $issues[] = 'Lavado de manos incorrecto';
+    }
+    if (strtolower($input['uniforme']) !== 'correcto') {
+        $issues[] = 'Uniforme incorrecto';
+    }
+    $incumplimiento = implode('; ', $issues);
+    $sinjoyeria = strtolower(trim($input['epp'])) === 'correcto' ? 1 : 0;
 
-    $id = Database::insert($sql, [
-        ':manos' => $manos_limpias,
-        ':uniforme' => $uniforme,
-        ':cofia' => $cofia,
-        ':sinjoyeria' => $sinjoyeria,
-        ':incumplimiento' => $incumplimiento,
-        ':usuario' => $usuario
-    ]);
+    Database::insert(
+        'INSERT INTO control_higiene (cve_usuario, fecha, manos_limpias, uniforme, cofia, sinjoyeria, incumplimiento, guantes, cubrebocas, observaciones) VALUES (:usuario, :fecha, :manos, :uniforme, :cofia, :sinjoyeria, :incumplimiento, :guantes, :cubrebocas, :observaciones)',
+        [
+            'usuario' => $usuario,
+            'fecha' => $fecha,
+            'manos' => $manos_limpias,
+            'uniforme' => $uniforme,
+            'cofia' => $cofia,
+            'sinjoyeria' => $sinjoyeria,
+            'incumplimiento' => $incumplimiento,
+            'guantes' => $guantes,
+            'cubrebocas' => $cubrebocas,
+            'observaciones' => $observaciones
+        ]
+    );
 
-    echo json_encode([
-        "status" => "ok",
-        "id" => $id
-    ]);
-
+    echo json_encode(['status' => 'ok']);
 } catch (Exception $e) {
-
-    echo json_encode([
-        "status" => "error",
-        "message" => $e->getMessage()
-    ]);
+    http_response_code(500);
+    echo json_encode(['status' => 'error', 'message' => 'Error del servidor']);
 }
-?>

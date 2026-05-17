@@ -109,7 +109,7 @@ $(document).ready(function(){
                 nombre: nombre,
                 correo: correo,
                 password: password,
-                google_id: "<?php echo htmlspecialchars($googleData['google_id']); ?>"
+                google_id: "<?php echo $googleData['google_id']; ?>"
             })
         })
         .then(response => response.json())

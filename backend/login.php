@@ -1,39 +1,43 @@
 <?php
-error_reporting(E_ALL);
-ini_set('display_errors', 1);
-header('Content-Type: application/json');
-
+header('Content-Type: application/json; charset=UTF-8');
 require_once __DIR__ . '/../database/database.php';
+session_start();
 
-$data = json_decode(file_get_contents("php://input"), true);
+$input = json_decode(file_get_contents('php://input'), true);
+if (!$input || !isset($input['correo']) || !isset($input['password'])) {
+    http_response_code(400);
+    echo json_encode(['status' => 'error', 'message' => 'Solicitud inválida']);
+    exit;
+}
 
-$correo = $data['correo'] ?? '';
-$password = $data['password'] ?? '';
+$correo = trim($input['correo']);
+$password = trim($input['password']);
 
-$sql = "SELECT cve_usuario, nombre, contrasena, rol FROM usuario WHERE correo = :correo LIMIT 1";
-$res = Database::query($sql, [':correo' => $correo]);
+try {
+    $user = Database::query('SELECT cve_usuario, nombre, correo, contrasena, rol FROM usuario WHERE correo = :correo LIMIT 1', ['correo' => $correo]);
+    if (!$user) {
+        echo json_encode(['status' => 'error']);
+        exit;
+    }
 
-if ($res && isset($res[0]['contrasena']) && $res[0]['contrasena'] === $password) {
+    $user = $user[0];
+    if ($user['contrasena'] !== $password) {
+        echo json_encode(['status' => 'error']);
+        exit;
+    }
 
-    $user_id = $res[0]['cve_usuario'];
-
-    // Set session
-    session_start();
-    $_SESSION['n_usuario'] = $res[0]['nombre'];
-    $_SESSION['user'] = [
-        'cve_usuario' => $user_id,
-        'rol' => strtolower($res[0]['rol'])
-    ];
+    $_SESSION['cve_usuario'] = $user['cve_usuario'];
+    $_SESSION['email'] = $user['correo'];
+    $_SESSION['n_usuario'] = $user['nombre'];
+    $_SESSION['rol'] = $user['rol'];
 
     echo json_encode([
-        "status" => "ok",
-        "usuario" => $res[0]['nombre'],
-        "rol" => strtolower($res[0]['rol']),
-        "cve_usuario" => $res[0]['cve_usuario']
+        'status' => 'ok',
+        'usuario' => $user['nombre'],
+        'cve_usuario' => $user['cve_usuario'],
+        'rol' => strtolower($user['rol'])
     ]);
-
-} else {
-    echo json_encode([
-        "status" => "error"
-    ]);
+} catch (Exception $e) {
+    http_response_code(500);
+    echo json_encode(['status' => 'error', 'message' => 'Error del servidor']);
 }

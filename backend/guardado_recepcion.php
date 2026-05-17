@@ -1,74 +1,46 @@
 <?php
-header("Content-Type: application/json");
-
+header('Content-Type: application/json; charset=UTF-8');
 require_once __DIR__ . '/../database/database.php';
+session_start();
 
-$data = json_decode(file_get_contents("php://input"), true);
-
-$producto = $data['producto'] ?? null;
-$proveedor = $data['proveedor'] ?? null;
-$temperatura = $data['temperatura'] ?? null;
-$estado = $data['estado'] ?? null;
-$empaque = $data['empaque'] ?? null;
-$caducidad = $data['caducidad'] ?? null;
-$calidad = $data['calidad'] ?? null;
-$envases = $data['envases'] ?? null;
-$observaciones = $data['observaciones'] ?? null;
-$usuario = 1;
-
-// Validación básica
-if (!$producto || $temperatura === null || !$estado) {
-    echo json_encode([
-        "status" => "error",
-        "message" => "Datos incompletos"
-    ]);
-    exit;
-}
-
-//lógica de negocio (bien hecha)
-$resultado = "ACEPTADO";
-
-if (
-    $estado === "En mal estado" ||
-    $empaque === "Incorrecto" ||
-    $caducidad === "Incorrecto" ||
-    $calidad === "Inadecuado" ||
-    $envases === "Incorrecto"
-) {
-    $resultado = "RECHAZADO";
+$input = json_decode(file_get_contents('php://input'), true);
+$required = ['producto', 'proveedor', 'temperatura', 'fecha', 'estado', 'empaque', 'caducidad', 'calidad', 'envases'];
+foreach ($required as $field) {
+    if (!isset($input[$field])) {
+        http_response_code(400);
+        echo json_encode(['status' => 'error', 'message' => 'Solicitud inválida']);
+        exit;
+    }
 }
 
 try {
+    $usuario = $_SESSION['cve_usuario'] ?? null;
+    $producto = trim($input['producto']);
+    $proveedor = trim($input['proveedor']);
+    $temperatura = trim($input['temperatura']);
+    $fecha = date('Y-m-d', strtotime($input['fecha']));
+    $estado = trim($input['estado']);
+    $observaciones = trim($input['observaciones'] ?? '');
 
-    $sql = "INSERT INTO recepcion_alimentos 
-    (producto, proveedor, temperatura, estado, empaque, caducidad, calidad, envases, observaciones, resultado, fecha, cve_usuario)
-    VALUES 
-    (:producto, :proveedor, :temperatura, :estado, :empaque, :caducidad, :calidad, :envases, :observaciones, :resultado, NOW(), :usuario)";
+    $aceptado = strtolower($estado) === 'fresco' && strtolower($input['empaque']) === 'correcto' && strtolower($input['caducidad']) === 'correcto' && strtolower($input['calidad']) === 'adecuado' && strtolower($input['envases']) === 'correcto';
+    $resultado = $aceptado ? 'ACEPTADO' : 'RECHAZADO';
 
-    $id = Database::insert($sql, [
-        ':producto' => $producto,
-        ':proveedor' => $proveedor,
-        ':temperatura' => $temperatura,
-        ':estado' => $estado,
-        ':empaque' => $empaque,
-        ':caducidad' => $caducidad,
-        ':calidad' => $calidad,
-        ':envases' => $envases,
-        ':observaciones' => $observaciones,
-        ':resultado' => $resultado,
-        ':usuario' => $usuario
-    ]);
+    Database::insert(
+        'INSERT INTO recepcion_alimentos (producto, proveedor, temperatura, fecha, estado, observaciones, resultado, cve_usuario) VALUES (:producto, :proveedor, :temperatura, :fecha, :estado, :observaciones, :resultado, :usuario)',
+        [
+            'producto' => $producto,
+            'proveedor' => $proveedor,
+            'temperatura' => $temperatura,
+            'fecha' => $fecha,
+            'estado' => $estado,
+            'observaciones' => $observaciones,
+            'resultado' => $resultado,
+            'usuario' => $usuario
+        ]
+    );
 
-    echo json_encode([
-        "status" => "ok",
-        "resultado" => $resultado,
-        "id" => $id
-    ]);
-
+    echo json_encode(['status' => 'ok']);
 } catch (Exception $e) {
-
-    echo json_encode([
-        "status" => "error",
-        "message" => $e->getMessage()
-    ]);
+    http_response_code(500);
+    echo json_encode(['status' => 'error', 'message' => 'Error del servidor']);
 }

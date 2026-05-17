@@ -123,7 +123,7 @@ $(document).ready(function(){
 // 🔐 sesión
 async function checkSession(){
     try{
-        let res = await fetch('backend/session_check.php');
+        let res = await fetch('/SIGCA/backend/session_check.php');
         let data = await res.json();
 
         if(!data.logged){
@@ -173,7 +173,7 @@ $(".menu").click(function(e){
 // 📊 datos dashboard
 function cargarDatos(){
 
-fetch('backend/get-temps.php')
+fetch('/SIGCA/backend/get-temps.php')
 .then(r=>r.json())
 .then(res=>{
     if(res.status==="ok"){
