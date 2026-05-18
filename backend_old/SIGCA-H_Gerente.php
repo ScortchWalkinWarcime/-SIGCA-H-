@@ -1,7 +1,7 @@
 <?php
 session_start();
 if (!isset($_SESSION['n_usuario'])) {
-    header("Location: Login_W3.html");
+    header("Location: index.html");
     exit;
 }
 ?>

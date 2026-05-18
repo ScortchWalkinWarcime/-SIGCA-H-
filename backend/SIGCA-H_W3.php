@@ -1,7 +1,7 @@
 <?php
 session_start();
 if (!isset($_SESSION['n_usuario'])) {
-    header("Location: Login_W3.html");
+    header("Location: index.html");
     exit;
 }
 ?>
@@ -65,6 +65,10 @@ body { background:#f4f6f9; margin:0; }
     <h5>Sistema de Gestión</h5>
     <div class="w3-display-right">
         <span id="user-info"></span>
+        <button id="scrape-btn" class="w3-button w3-border w3-border-green w3-text-green w3-small" title="Scrapear Distintivo H">
+            Scrape Distintivo H
+        </button>
+
         <button id="logout" class="w3-button w3-border w3-border-red w3-text-red w3-small">
             Cerrar sesión
         </button>
@@ -221,6 +225,39 @@ setInterval(cargarDatos,30000);
 cargarDatos();
 
 $("#logout").click(()=>window.location.href="logout.php");
+
+// Distintivo H scraping
+$("#scrape-btn").click(async ()=>{
+    const url = prompt('Ingrese la URL de Distintivo H a scrapear', 'https://www.distintivoh.gob.mx');
+    if(!url) return;
+
+    $("#contenido").html("<p>Scrapeando...</p>");
+
+    try{
+        const res = await fetch('/SIGCA/backend/scrape.php', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+            body: new URLSearchParams({ url })
+        });
+
+        const data = await res.json();
+
+        if(data.error){
+            $("#contenido").html(`<p class='w3-text-red'>${data.error}</p>`);
+            return;
+        }
+
+        $("#contenido").html(
+            `<h3>Distintivo H - Resultado</h3>
+            <p><strong>Título:</strong> ${data.title || '-'} </p>
+            <p><strong>Primer H1:</strong> ${data.h1 || '-'} </p>`
+        );
+
+    }catch(e){
+        $("#contenido").html("<p class='w3-text-red'>Error al scrapear</p>");
+        console.error(e);
+    }
+});
 
 });
 

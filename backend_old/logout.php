@@ -13,7 +13,7 @@ session_destroy();
         localStorage.removeItem("usuario");
         localStorage.removeItem("cve_usuario");
         localStorage.removeItem("rol");
-        window.location.href = "../Login_W3.html";
+        window.location.href = "../index.html";
     </script>
 </body>
 </html>
