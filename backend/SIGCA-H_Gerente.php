@@ -49,8 +49,8 @@ body { background:#f4f6f9; margin:0; }
     <a href="#" class="menu" data-modulo="alertas.html">Alertas</a>
 
     <div class="w3-small w3-padding w3-text-grey">AUDITORÍA</div>
-    <a href="#" class="menu" data-modulo="reporte.html">Reporte</a>
-    <a href="#" class="menu" data-modulo="historial.html">Historial</a>
+    <a href="#" class="menu" data-modulo="../reporte.html">Reporte</a>
+    <a href="#" class="menu" data-modulo="../historial.html">Historial</a>
 
 </div>
 

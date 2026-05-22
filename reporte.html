@@ -18,8 +18,140 @@ body{margin:0; font-family: Arial; background:#f1f1f1;}
 <a href="backend/SIGCA-H_W3.html">Dashboard</a>
 </div>
 <div class="content">
-<h2>Reporte</h2>
-<p>Módulo en desarrollo.</p>
+<h2>Enviar reporte por correo</h2>
+<div class="form-section w3-white w3-padding w3-card-4">
+    <p>Genera un PDF a partir de los registros seleccionados y envíalo desde tu cuenta al destinatario elegido.</p>
+
+    <div class="w3-margin-bottom">
+        <label>Remitente actual</label>
+        <input id="sender-email" class="w3-input w3-border" type="email" readonly>
+    </div>
+
+    <div class="w3-margin-bottom">
+        <label>Seleccione el módulo</label>
+        <select id="module" class="w3-select w3-border" name="module">
+            <option value="" disabled selected>Elegir módulo</option>
+            <option value="agua">Control de Agua</option>
+            <option value="higiene">Control de Higiene</option>
+            <option value="temperatura">Control de Temperatura</option>
+            <option value="recepcion">Recepción de Alimentos</option>
+        </select>
+    </div>
+
+    <div class="w3-row-padding">
+        <div class="w3-half w3-margin-bottom">
+            <label>Fecha inicio</label>
+            <input id="from-date" class="w3-input w3-border" type="date">
+        </div>
+        <div class="w3-half w3-margin-bottom">
+            <label>Fecha fin</label>
+            <input id="to-date" class="w3-input w3-border" type="date">
+        </div>
+    </div>
+
+    <div class="w3-margin-bottom">
+        <label>Enviar a (seleccione usuario existente)</label>
+        <select id="recipient-select" class="w3-select w3-border" name="recipient">
+            <option value="" disabled selected>Elegir destinatario</option>
+        </select>
+    </div>
+
+    <div class="w3-margin-bottom">
+        <label>O usar correo manual</label>
+        <input id="manual-email" class="w3-input w3-border" type="email" placeholder="destinatario@ejemplo.com">
+    </div>
+
+    <button id="send-report" class="w3-button w3-green">Enviar reporte PDF</button>
+
+    <div class="status-box" id="status-box"></div>
 </div>
+</div>
+
+<script>
+const recipientSelect = $('#recipient-select');
+const senderEmailInput = $('#sender-email');
+const statusBox = $('#status-box');
+
+function showStatus(message, isError = false) {
+    statusBox.html(`<div class="w3-panel ${isError ? 'w3-pale-red' : 'w3-pale-green'} w3-border ${isError ? 'w3-border-red' : 'w3-border-green'}">${message}</div>`);
+}
+
+async function loadCurrentUser() {
+    try {
+        const res = await fetch('/SIGCA/backend/get_user.php');
+        const data = await res.json();
+        if (data.status === 'ok') {
+            senderEmailInput.val(data.data.email);
+        } else {
+            senderEmailInput.val('No autorizado');
+        }
+    } catch (error) {
+        senderEmailInput.val('Error cargando usuario');
+    }
+}
+
+async function loadUsers() {
+    try {
+        const res = await fetch('/SIGCA/backend/get_users.php');
+        const data = await res.json();
+        if (data.status === 'ok') {
+            recipientSelect.empty();
+            recipientSelect.append('<option value="" disabled selected>Elegir destinatario</option>');
+            data.data.forEach(user => {
+                recipientSelect.append(`<option value="${user.email}">${user.nombre_usuario} (${user.email})</option>`);
+            });
+        }
+    } catch (error) {
+        showStatus('No se pudo cargar la lista de destinatarios.', true);
+    }
+}
+
+$('#send-report').click(async () => {
+    const module = $('#module').val();
+    const fromDate = $('#from-date').val();
+    const toDate = $('#to-date').val();
+    const recipientEmail = recipientSelect.val();
+    const manualEmail = $('#manual-email').val().trim();
+
+    if (!module) {
+        showStatus('Selecciona un módulo para el reporte.', true);
+        return;
+    }
+
+    if (!recipientEmail && !manualEmail) {
+        showStatus('Selecciona un destinatario o escribe un correo manual.', true);
+        return;
+    }
+
+    showStatus('Enviando reporte...');
+
+    const formData = new URLSearchParams();
+    formData.append('module', module);
+    formData.append('from_date', fromDate);
+    formData.append('to_date', toDate);
+    formData.append('recipient_email', recipientEmail || '');
+    formData.append('manual_email', manualEmail || '');
+
+    try {
+        const response = await fetch('/SIGCA/backend/send_report.php', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+            body: formData.toString()
+        });
+        const result = await response.json();
+        if (result.status === 'ok') {
+            showStatus(result.message);
+        } else {
+            showStatus(result.message || 'Error al enviar el reporte.', true);
+        }
+    } catch (error) {
+        showStatus('Ocurrió un error al enviar el reporte.', true);
+        console.error(error);
+    }
+});
+
+loadCurrentUser();
+loadUsers();
+</script>
 </body>
 </html>

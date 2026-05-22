@@ -4,26 +4,53 @@ require_once __DIR__ . '/../database/database.php';
 session_start();
 
 $input = json_decode(file_get_contents('php://input'), true);
-if (!$input || !isset($input['area']) || !isset($input['lectura'])) {
+if (!$input || !isset($input['area'])) {
     http_response_code(400);
-    echo json_encode(['status' => 'error', 'message' => 'Solicitud inválida']);
+    echo json_encode(['status' => 'error', 'message' => 'Solicitud inválida: falta el campo area']);
     exit;
+}
+
+// Helper to normalize optional numeric values
+function parse_nullable_number($val) {
+    if (!isset($val)) return null;
+    $val = trim((string)$val);
+    if ($val === '') return null;
+    // Use float for numeric measurements
+    return is_numeric($val) ? (float)$val : null;
 }
 
 try {
     $usuario = $_SESSION['cve_usuario'] ?? null;
     $area = trim($input['area']);
-    $lectura = trim($input['lectura']);
+    $ph = parse_nullable_number($input['ph'] ?? null);
+    $cloro = parse_nullable_number($input['cloro'] ?? null);
+    $observaciones = isset($input['observaciones']) ? trim($input['observaciones']) : null;
+    $potabilidad = isset($input['potabilidad']) ? trim($input['potabilidad']) : null;
+    $temperatura = parse_nullable_number($input['temperatura'] ?? null);
+    $turbidez = parse_nullable_number($input['turbidez'] ?? null);
+    $dureza = parse_nullable_number($input['dureza'] ?? null);
+    $metales_pesados = isset($input['metales_pesados']) ? trim($input['metales_pesados']) : null;
     $fecha = date('Y-m-d H:i:s');
 
-    Database::insert('INSERT INTO control_agua (cve_usuario, area, lectura, fecha) VALUES (:usuario, :area, :lectura, :fecha)', [
+    $sql = 'INSERT INTO control_agua (ph, cloro, observaciones, cve_usuario, area, potabilidad, temperatura, turbidez, dureza, metales_pesados, fecha) VALUES (:ph, :cloro, :observaciones, :usuario, :area, :potabilidad, :temperatura, :turbidez, :dureza, :metales_pesados, :fecha)';
+
+    $params = [
+        'ph' => $ph,
+        'cloro' => $cloro,
+        'observaciones' => $observaciones,
         'usuario' => $usuario,
         'area' => $area,
-        'lectura' => $lectura,
+        'potabilidad' => $potabilidad,
+        'temperatura' => $temperatura,
+        'turbidez' => $turbidez,
+        'dureza' => $dureza,
+        'metales_pesados' => $metales_pesados,
         'fecha' => $fecha
-    ]);
+    ];
 
-    echo json_encode(['status' => 'ok']);
+    $insertId = Database::insert($sql, $params);
+
+    echo json_encode(['status' => 'ok', 'id' => $insertId]);
 } catch (Exception $e) {
     http_response_code(500);
     echo json_encode(['status' => 'error', 'message' => 'Error del servidor']);

@@ -28,9 +28,14 @@ $host = parse_url($url, PHP_URL_HOST);
 $host_l = $host ? strtolower($host) : '';
 $server_host = strtolower(parse_url($_SERVER['HTTP_HOST'], PHP_URL_HOST));
 
-// Allow if same host, example.com (dev), or contains 'distintiv' (Distintivo H domains)
+// Allow if same host, example.com (dev), Distintivo H domains, or gob.mx domains
 if($host_l){
-    if($host_l === $server_host || $host_l === 'example.com' || strpos($host_l, 'distintiv') !== false){
+    if(
+        $host_l === $server_host ||
+        $host_l === 'example.com' ||
+        strpos($host_l, 'distintiv') !== false ||
+        preg_match('/(^|\.)gob\.mx$/', $host_l)
+    ){
         // allowed
     } else {
         http_response_code(403);
