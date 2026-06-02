@@ -1,8 +1,8 @@
-<h2>Recepción de Alimentos</h2>
+<h2>Salida de Alimentos</h2>
 
 <div class="w3-card w3-white w3-padding">
 
-<form id="formRecepcion">
+<form id="formSalida">
 
 <label>Producto</label>
 <input id="producto" class="w3-input w3-border" required>
@@ -13,7 +13,7 @@
 <label class="w3-margin-top">Temperatura del producto (°C)</label>
 <input id="temperatura" class="w3-input w3-border" type="number">
 
-<label class="w3-margin-top">Fecha de recepción</label>
+<label class="w3-margin-top">Fecha de salida</label>
 <input id="fecha" class="w3-input w3-border" type="datetime-local">
 
 <label class="w3-margin-top">Estado del alimento</label>
@@ -21,37 +21,14 @@
 <option>Fresco</option>
 <option>Aceptable</option>
 <option>En mal estado</option>
-</select>
-
-<label class="w3-margin-top">Empaque limpio</label>
-<select id="empaque" class="w3-input w3-border">
-<option>Correcto</option>
-<option>Incorrecto</option>
-</select>
-
-<label class="w3-margin-top">Caducidad vigente</label>
-<select id="caducidad" class="w3-input w3-border">
-<option>Correcto</option>
-<option>Incorrecto</option>
-</select>
-
-<label class="w3-margin-top">Color / olor adecuado</label>
-<select id="calidad" class="w3-input w3-border">
-<option>Adecuado</option>
-<option>Inadecuado</option>
-</select>
-
-<label class="w3-margin-top">Envases limpios</label>
-<select id="envases" class="w3-input w3-border">
-<option>Correcto</option>
-<option>Incorrecto</option>
+<option>Entregado</option>
 </select>
 
 <label class="w3-margin-top">Observaciones</label>
 <textarea id="observaciones" class="w3-input w3-border"></textarea>
 
 <button class="w3-button w3-blue w3-margin-top guardar">
-Registrar
+Registrar salida
 </button>
 
 </form>
@@ -62,21 +39,23 @@ Registrar
 
 <br>
 
-<table class="w3-table w3-bordered w3-white" id="tablaRecepcion">
+<table class="w3-table w3-bordered w3-white" id="tablaSalida">
 <tr>
 <th>Producto</th>
 <th>Proveedor</th>
 <th>Estado</th>
+<th>Temperatura</th>
 <th>Resultado</th>
 <th>Observación</th>
+<th>Fecha</th>
 </tr>
 </table>
 
 <script>
 
-async function cargarRegistrosRecepcion(){
+async function cargarRegistrosSalida(){
     try{
-        let res = await fetch('/SIGCA/backend/get-recepcion.php');
+        let res = await fetch('/SIGCA/backend/get-salida.php');
         let json = await res.json();
 
         if(json.status !== 'ok'){
@@ -85,7 +64,7 @@ async function cargarRegistrosRecepcion(){
 
         let registros = json.data;
 
-        $("#tablaRecepcion tr:not(:first)").remove();
+        $("#tablaSalida tr:not(:first)").remove();
 
         registros.forEach(r=>{
             let fila = `
@@ -93,15 +72,17 @@ async function cargarRegistrosRecepcion(){
                 <td>${r.producto}</td>
                 <td>${r.proveedor}</td>
                 <td>${r.estado}</td>
+                <td>${r.temperatura}</td>
                 <td>
                     <span class="w3-tag ${r.resultado === 'ACEPTADO' ? 'w3-green' : 'w3-red'}">
                         ${r.resultado}
                     </span>
                 </td>
                 <td>${r.observaciones}</td>
+                <td>${r.fecha}</td>
             </tr>`;
             
-            $("#tablaRecepcion").append(fila);
+            $("#tablaSalida").append(fila);
         });
 
     }catch(e){
@@ -110,7 +91,7 @@ async function cargarRegistrosRecepcion(){
     }
 }
 
-$("#formRecepcion").submit(function(e){
+$("#formSalida").submit(function(e){
     e.preventDefault();
 
     let data = {
@@ -119,16 +100,12 @@ $("#formRecepcion").submit(function(e){
         temperatura: $("#temperatura").val(),
         fecha: $("#fecha").val(),
         estado: $("#estado").val(),
-        empaque: $("#empaque").val(),
-        caducidad: $("#caducidad").val(),
-        calidad: $("#calidad").val(),
-        envases: $("#envases").val(),
         observaciones: $("#observaciones").val()
     };
 
     $("#mensaje").html("Guardando...");
 
-    fetch('/SIGCA/backend/guardado_recepcion.php',{
+    fetch('/SIGCA/backend/guardado_salida.php',{
         method:"POST",
         headers:{ "Content-Type":"application/json" },
         body: JSON.stringify(data)
@@ -136,9 +113,9 @@ $("#formRecepcion").submit(function(e){
     .then(r=>r.json())
     .then(res=>{
         if(res.status==="ok"){
-            $("#mensaje").html("<span class='w3-text-green'>Guardado correctamente</span>");
-            $("#formRecepcion")[0].reset();
-            cargarRegistrosRecepcion();
+            $("#mensaje").html("<span class='w3-text-green'>Salida registrada</span>");
+            $("#formSalida")[0].reset();
+            cargarRegistrosSalida();
         }else{
             $("#mensaje").html("<span class='w3-text-red'>Error al guardar</span>");
         }
@@ -148,6 +125,6 @@ $("#formRecepcion").submit(function(e){
     });
 });
 
-cargarRegistrosRecepcion();
+cargarRegistrosSalida();
 
 </script>

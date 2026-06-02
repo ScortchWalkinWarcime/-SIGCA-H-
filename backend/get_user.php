@@ -9,7 +9,7 @@ if (!isset($_SESSION['cve_usuario'])) {
 }
 
 try {
-    $user = Database::query('SELECT cve_usuario, nombre AS nombre_usuario, correo AS email, rol FROM usuario WHERE cve_usuario = :id LIMIT 1', ['id' => $_SESSION['cve_usuario']]);
+    $user = Database::query('SELECT cve_usuario, nombre AS nombre_usuario, correo AS email, LOWER(TRIM(rol)) AS rol FROM usuario WHERE cve_usuario = :id LIMIT 1', ['id' => $_SESSION['cve_usuario']]);
     if (!$user) {
         echo json_encode(['status' => 'error', 'message' => 'Usuario no encontrado']);
         exit;

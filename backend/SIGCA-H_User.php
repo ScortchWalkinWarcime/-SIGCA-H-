@@ -4,6 +4,15 @@ if (!isset($_SESSION['n_usuario'])) {
     header("Location: index.html");
     exit;
 }
+
+$userRole = strtolower($_SESSION['rol'] ?? $_SESSION['user']['rol'] ?? 'user');
+if ($userRole === 'admin') {
+    header("Location: SIGCA-H_W3.php");
+    exit;
+} elseif ($userRole === 'gerente') {
+    header("Location: SIGCA-H_Gerente.php");
+    exit;
+}
 ?>
 
 <!DOCTYPE html>
@@ -34,14 +43,13 @@ body { background:#f4f6f9; margin:0; }
     <h4 class="w3-center w3-padding">SIGCA-H</h4>
     <hr>
 
-    <a href="#" class="menu" data-modulo="">Dashboard</a>
-
     <div class="w3-small w3-padding w3-text-grey">OPERACIÓN SANITARIA</div>
 
     <a href="#" class="menu" data-modulo="Control_Temp.html">Control de Temperatura</a>
     <a href="#" class="menu" data-modulo="Control_agua.html">Control de Agua</a>
     <a href="#" class="menu" data-modulo="Control_higiene.html">Control de Higiene</a>
     <a href="#" class="menu" data-modulo="recepcion_alimentos.html">Recepción de Alimentos</a>
+    <a href="#" class="menu" data-modulo="salida_alimentos.html">Salida de Alimentos</a>
     <a href="#" class="menu" data-modulo="almacenamiento.html">Almacenamiento</a>
 </div>
 
@@ -114,16 +122,31 @@ async function cargarModulo(mod){
 
     try {
         let res = await fetch("/SIGCA/" + mod);
-        let html = await res.text();
+        if (!res.ok) throw new Error('Módulo no encontrado');
 
+        let html = await res.text();
         let parser = new DOMParser();
         let doc = parser.parseFromString(html, 'text/html');
         let content = doc.querySelector('.content');
 
         $("#contenido").html(content ? content.innerHTML : html);
 
-    } catch {
+        // Ejecutar scripts del módulo cargado para que el formulario y acciones funcionen
+        doc.querySelectorAll('script').forEach(oldScript => {
+            if (oldScript.src && oldScript.src.includes('jquery')) return;
+            let newScript = document.createElement('script');
+            if (oldScript.src) {
+                newScript.src = oldScript.src;
+                newScript.async = false;
+            } else {
+                newScript.textContent = oldScript.textContent;
+            }
+            document.body.appendChild(newScript);
+        });
+
+    } catch (e) {
         $("#contenido").html("<p>Error al cargar módulo</p>");
+        console.error(e);
     }
 }
 

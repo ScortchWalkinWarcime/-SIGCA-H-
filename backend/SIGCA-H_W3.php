@@ -4,6 +4,16 @@ if (!isset($_SESSION['n_usuario'])) {
     header("Location: index.html");
     exit;
 }
+
+$userRole = strtolower($_SESSION['rol'] ?? $_SESSION['user']['rol'] ?? 'user');
+if ($userRole !== 'admin') {
+    $redirect = 'SIGCA-H_User.php';
+    if ($userRole === 'gerente') {
+        $redirect = 'SIGCA-H_Gerente.php';
+    }
+    header("Location: $redirect");
+    exit;
+}
 ?>
 
 <!DOCTYPE html>
@@ -36,13 +46,12 @@ body { background:#f4f6f9; margin:0; }
     <h4 class="w3-center w3-padding">SIGCA-H</h4>
     <hr>
 
-    <a href="#" class="menu" data-modulo="dashboard.php">Dashboard</a>
-
     <div class="w3-small w3-padding w3-text-grey">OPERACIÓN SANITARIA</div>
    <a href="#" class="menu" data-modulo="../Control_Temp.html">Control de Temperatura</a>
     <a href="#" class="menu" data-modulo="../Control_agua.html">Control de Agua</a>
     <a href="#" class="menu" data-modulo="../Control_higiene.html">Control de Higiene</a>
     <a href="#" class="menu" data-modulo="../recepcion_alimentos.html">Recepción de Alimentos</a>
+    <a href="#" class="menu" data-modulo="../salida_alimentos.html">Salida de Alimentos</a>
     <a href="#" class="menu" data-modulo="../almacenamiento.html">Almacenamiento</a>
 
     <div class="w3-small w3-padding w3-text-grey gerente-only">MONITOREO</div>
@@ -146,22 +155,49 @@ function bloquearEdicion(){
     }
 }
 
+function resolveModuloUrl(mod){
+    let url = mod;
+    if (!mod.startsWith('/') && !mod.startsWith('http')) {
+        if (mod.startsWith('../')) {
+            url = mod.replace(/^(\.\.\/)+/, '/SIGCA/');
+        } else {
+            url = '/SIGCA/' + mod;
+        }
+    }
+    return url;
+}
+
 async function cargarModulo(mod){
+    if (!mod) return;
     $("#contenido").html("Cargando...");
 
     try{
-        let url = mod;
-        if (!mod.startsWith('/') && !mod.startsWith('http')) {
-            if (mod.startsWith('../')) {
-                url = mod.replace(/^(\.\.\/)+/, '/SIGCA/');
-            } else {
-                url = '/SIGCA/' + mod;
-            }
-        }
-
+        const url = resolveModuloUrl(mod);
         const res = await fetch(url);
+        if (!res.ok) throw new Error('Módulo no encontrado: ' + res.status);
         const html = await res.text();
-        $("#contenido").html(html);
+
+        const parser = new DOMParser();
+        const doc = parser.parseFromString(html, 'text/html');
+        const content = doc.querySelector('.content');
+        $("#contenido").html(content ? content.innerHTML : html);
+
+        doc.querySelectorAll('script').forEach(oldScript => {
+            if (oldScript.src && oldScript.src.includes('jquery')) return;
+            const newScript = document.createElement('script');
+            if (oldScript.src) {
+                let scriptSrc = oldScript.src;
+                if (!scriptSrc.startsWith('http') && !scriptSrc.startsWith('/')) {
+                    scriptSrc = '/SIGCA/' + scriptSrc;
+                }
+                newScript.src = scriptSrc;
+                newScript.async = false;
+            } else {
+                newScript.textContent = oldScript.textContent;
+            }
+            document.body.appendChild(newScript);
+        });
+
         bloquearEdicion();
     }catch(e){
         $("#contenido").html("<p class='w3-text-red'>Error al cargar módulo</p>");

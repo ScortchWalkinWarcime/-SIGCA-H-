@@ -6,8 +6,8 @@ if (!isset($_SESSION['n_usuario'])) {
 }
 
 $userName = $_SESSION['n_usuario'];
-$userId = $_SESSION['user']['cve_usuario'] ?? '';
-$userRole = strtolower($_SESSION['user']['rol'] ?? 'user');
+$userId = $_SESSION['cve_usuario'] ?? ($_SESSION['user']['cve_usuario'] ?? '');
+$userRole = strtolower($_SESSION['rol'] ?? ($_SESSION['user']['rol'] ?? 'user'));
 
 // Determine dashboard based on role
 $dashboard = 'SIGCA-H_User.php';

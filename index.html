@@ -107,8 +107,10 @@ fetch("/SIGCA/backend/login.php", {
         localStorage.setItem("cve_usuario", data.cve_usuario);
         localStorage.setItem("rol", data.rol);
 
-        let dashboard = "backend/SIGCA-H_W3.php";
-        if(data.rol === "gerente"){
+        let dashboard = "backend/SIGCA-H_User.php";
+        if(data.rol === "admin"){
+            dashboard = "backend/SIGCA-H_W3.php";
+        } else if(data.rol === "gerente"){
             dashboard = "backend/SIGCA-H_Gerente.php";
         }
 

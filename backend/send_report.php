@@ -107,11 +107,15 @@ if ($toDate && !$to) {
 }
 
 try {
-    $sender = Database::query('SELECT nombre AS nombre_usuario, correo AS email FROM usuario WHERE cve_usuario = :id LIMIT 1', ['id' => $_SESSION['cve_usuario']]);
+    $sender = Database::query('SELECT nombre AS nombre_usuario, correo AS email, rol FROM usuario WHERE cve_usuario = :id LIMIT 1', ['id' => $_SESSION['cve_usuario']]);
     if (!$sender) {
         sendJson(['status' => 'error', 'message' => 'No se encontró el usuario remitente'], 403);
     }
     $sender = $sender[0];
+    $senderRole = strtolower(trim($sender['rol'] ?? ''));
+    if (!in_array($senderRole, ['admin', 'gerente'], true)) {
+        sendJson(['status' => 'error', 'message' => 'No autorizado. Solo administradores y gerentes pueden enviar reportes.'], 403);
+    }
 
     switch ($module) {
         case 'agua':
