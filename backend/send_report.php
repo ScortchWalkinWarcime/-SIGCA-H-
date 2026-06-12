@@ -1,6 +1,10 @@
 <?php
 header('Content-Type: application/json; charset=UTF-8');
 require_once __DIR__ . '/../database/database.php';
+require_once __DIR__ . '/../vendor/autoload.php';
+
+use PHPMailer\PHPMailer\PHPMailer;
+use PHPMailer\PHPMailer\Exception;
 session_start();
 
 function sendJson(array $data, int $status = 200): void {
@@ -107,15 +111,10 @@ if ($toDate && !$to) {
 }
 
 try {
-    $sender = Database::query('SELECT nombre AS nombre_usuario, correo AS email, rol FROM usuario WHERE cve_usuario = :id LIMIT 1', ['id' => $_SESSION['cve_usuario']]);
-    if (!$sender) {
-        sendJson(['status' => 'error', 'message' => 'No se encontró el usuario remitente'], 403);
-    }
-    $sender = $sender[0];
-    $senderRole = strtolower(trim($sender['rol'] ?? ''));
-    if (!in_array($senderRole, ['admin', 'gerente'], true)) {
-        sendJson(['status' => 'error', 'message' => 'No autorizado. Solo administradores y gerentes pueden enviar reportes.'], 403);
-    }
+    $sender = [
+        'nombre_usuario' => 'SIGCA-H',
+        'email' => 'gutierrezvergarad@gmail.com'
+    ];
 
     switch ($module) {
         case 'agua':
@@ -162,7 +161,6 @@ try {
     $textLines = [];
     $textLines[] = $title;
     $textLines[] = 'Fecha de envío: ' . date('Y-m-d H:i:s');
-    $textLines[] = 'Remitente: ' . $sender['nombre_usuario'] . ' <' . $sender['email'] . '>';
     $textLines[] = 'Destinatario: ' . $recipientEmail;
     $textLines[] = 'Módulo: ' . $label;
     $textLines[] = 'Período: ' . ($from ?? 'sin límite') . ' - ' . ($to ?? 'sin límite');
@@ -180,12 +178,11 @@ try {
     $pdfData = buildPdfDocument($title, $textLines);
 
     $subject = "Reporte SIGCA-H: {$label}";
-    $bodyText = "Se adjunta el reporte en PDF del módulo '{$label}' para el rango seleccionado.\n\nRemitente: {$sender['nombre_usuario']} ({$sender['email']})\n";
+    $bodyText = "Se adjunta el reporte en PDF del módulo '{$label}' para el rango seleccionado.\n";
 
     $boundary = '==SIGCA-' . md5(uniqid('', true));
     $headers = [];
     $headers[] = 'From: ' . $sender['nombre_usuario'] . ' <' . $sender['email'] . '>';
-    $headers[] = 'Reply-To: ' . $sender['email'];
     $headers[] = 'MIME-Version: 1.0';
     $headers[] = 'Content-Type: multipart/mixed; boundary="' . $boundary . '"';
 

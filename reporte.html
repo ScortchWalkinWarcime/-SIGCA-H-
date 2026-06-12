@@ -51,32 +51,6 @@
         statusBox.html(`<div class="w3-panel ${isError ? 'w3-pale-red' : 'w3-pale-green'} w3-border ${isError ? 'w3-border-red' : 'w3-border-green'}">${message}</div>`);
     }
 
-    async function loadCurrentUser() {
-        try {
-            const res = await fetch('/SIGCA/backend/get_user.php');
-            const data = await res.json();
-            if (data.status === 'ok') {
-                const rol = (data.data.rol || '').toLowerCase().trim();
-                if (rol === 'admin' || rol === 'gerente') {
-                    $('#send-report').prop('disabled', false);
-                    formSection.show();
-                } else {
-                    $('#send-report').prop('disabled', true);
-                    formSection.hide();
-                    showStatus('Solo administradores y gerentes pueden enviar reportes.', true);
-                }
-            } else {
-                $('#send-report').prop('disabled', true);
-                formSection.hide();
-                showStatus('No autorizado para usar esta función.', true);
-            }
-        } catch (error) {
-            $('#send-report').prop('disabled', true);
-            formSection.hide();
-            showStatus('Error al cargar usuario. Intenta de nuevo.', true);
-        }
-    }
-
     async function loadUsers() {
         try {
             const res = await fetch('/SIGCA/backend/get_users.php');
@@ -137,6 +111,5 @@
         }
     });
 
-    loadCurrentUser();
     loadUsers();
 })();</script>
