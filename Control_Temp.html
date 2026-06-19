@@ -18,7 +18,8 @@
 <input id="temperatura" class="w3-input w3-border" type="number" required>
 
 <label class="w3-margin-top">Fecha y hora</label>
-<input id="fecha" class="w3-input w3-border" type="datetime-local">
+<!-- Fecha se asigna automáticamente en el servidor -->
+<input id="fecha" class="w3-input w3-border" type="hidden">
 
 <button class="w3-button w3-blue w3-margin-top guardar">
 Registrar
@@ -85,14 +86,12 @@ $(document).on("submit", "#formTemp", function(e){
 
     let area = $("#area").val();
     let temp = $("#temperatura").val();
-    let fecha = $("#fecha").val();
-
     fetch("/SIGCA/backend/guardado_temp.php", {
         method: "POST",
         headers: {
             "Content-Type": "application/json"
         },
-        body: JSON.stringify({ area, temp, fecha })
+        body: JSON.stringify({ area, temp })
     })
     .then(r => r.json())
     .then(res => {

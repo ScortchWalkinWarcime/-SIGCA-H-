@@ -1,4 +1,6 @@
 <?php
+// timestamps
+date_default_timezone_set('America/Mexico_City');
 
 class Database {
     private static ?PDO $instance = null;

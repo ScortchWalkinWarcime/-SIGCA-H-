@@ -13,8 +13,8 @@
 <label class="w3-margin-top">Temperatura del producto (°C)</label>
 <input id="temperatura" class="w3-input w3-border" type="number">
 
-<label class="w3-margin-top">Fecha de recepción</label>
-<input id="fecha" class="w3-input w3-border" type="datetime-local">
+<!-- Fecha asignada automáticamente en el servidor -->
+<input id="fecha" class="w3-input w3-border" type="hidden">
 
 <label class="w3-margin-top">Estado del alimento</label>
 <select id="estado" class="w3-input w3-border">
@@ -112,12 +112,13 @@ async function cargarRegistrosRecepcion(){
 
 $("#formRecepcion").submit(function(e){
     e.preventDefault();
+    const submitButton = $(this).find("button[type='submit'], button.guardar");
+    submitButton.prop('disabled', true);
 
     let data = {
         producto: $("#producto").val(),
         proveedor: $("#proveedor").val(),
         temperatura: $("#temperatura").val(),
-        fecha: $("#fecha").val(),
         estado: $("#estado").val(),
         empaque: $("#empaque").val(),
         caducidad: $("#caducidad").val(),
@@ -145,6 +146,9 @@ $("#formRecepcion").submit(function(e){
     })
     .catch(()=>{
         $("#mensaje").html("<span class='w3-text-red'>Error de conexión</span>");
+    })
+    .finally(() => {
+        submitButton.prop('disabled', false);
     });
 });
 

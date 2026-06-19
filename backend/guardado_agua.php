@@ -11,8 +11,16 @@ if (!$input || !isset($input['area'])) {
 }
 
 // Helper to normalize optional numeric values
-function parse_nullable_number($val) {
+/**
+ * Normalize an optional numeric value to a float or null.
+ * Accepts null, string, int or float.
+ *
+ * @param mixed $val
+ * @return float|null
+ */
+function parse_nullable_number(mixed $val): ?float {
     if (!isset($val)) return null;
+    if (is_int($val) || is_float($val)) return (float)$val;
     $val = trim((string)$val);
     if ($val === '') return null;
     // Use float for numeric measurements

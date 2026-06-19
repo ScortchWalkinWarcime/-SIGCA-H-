@@ -98,6 +98,8 @@ $(document).ready(function(){
             return;
         }
 
+        const submitButton = $("#registerForm button[type='submit']");
+        submitButton.prop('disabled', true);
         $("#mensaje").html("Registrando...");
 
         fetch("registro_google_backend.php", {
@@ -126,6 +128,9 @@ $(document).ready(function(){
         .catch(error => {
             $("#mensaje").html("<span class='w3-text-red'>Error del sistema</span>");
             console.error(error);
+        })
+        .finally(() => {
+            submitButton.prop('disabled', false);
         });
     });
 });

@@ -4,7 +4,7 @@ require_once __DIR__ . '/../database/database.php';
 session_start();
 
 $input = json_decode(file_get_contents('php://input'), true);
-$required = ['producto', 'proveedor', 'temperatura', 'fecha', 'estado', 'empaque', 'caducidad', 'calidad', 'envases'];
+$required = ['producto', 'proveedor', 'temperatura', 'estado', 'empaque', 'caducidad', 'calidad', 'envases'];
 foreach ($required as $field) {
     if (!isset($input[$field])) {
         http_response_code(400);
@@ -18,7 +18,8 @@ try {
     $producto = trim($input['producto']);
     $proveedor = trim($input['proveedor']);
     $temperatura = trim($input['temperatura']);
-    $fecha = date('Y-m-d', strtotime($input['fecha']));
+    // Assign server local datetime for reception
+    $fecha = date('Y-m-d H:i:s');
     $estado = trim($input['estado']);
     $observaciones = trim($input['observaciones'] ?? '');
 

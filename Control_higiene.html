@@ -25,7 +25,6 @@
 <option>Incorrecto</option>
 </select>
 
-<!-- 🔥 NUEVOS CAMPOS -->
 
 <label class="w3-margin-top">Uniforme limpio y completo</label>
 <select id="uniforme" class="w3-input w3-border">
@@ -81,6 +80,8 @@ $(function() {
 
   $('#formHigiene').on('submit', function(event) {
     event.preventDefault();
+    const submitButton = $(this).find("button[type='submit'], button.guardar");
+    submitButton.prop('disabled', true);
 
     const data = {
       empleado: $('#empleado').val(),
@@ -117,6 +118,9 @@ $(function() {
     .catch(error => {
       alert('Error al registrar higiene');
       console.error(error);
+    })
+    .finally(() => {
+      submitButton.prop('disabled', false);
     });
 
   });

@@ -14,7 +14,8 @@ try {
     $usuario = $_SESSION['cve_usuario'] ?? null;
     $area = trim($input['area']);
     $temp = trim($input['temp']);
-    $fecha = isset($input['fecha']) && $input['fecha'] !== '' ? date('Y-m-d', strtotime($input['fecha'])) : date('Y-m-d');
+    // Use server local datetime for the record
+    $fecha = date('Y-m-d H:i:s');
 
     $areaRow = Database::query('SELECT cve_area FROM areas WHERE nombre = :nombre LIMIT 1', ['nombre' => $area]);
     if (!$areaRow) {

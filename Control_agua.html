@@ -71,6 +71,8 @@ $(function() {
   // Envío del formulario
   $('#formAgua').on('submit', function(event) {
     event.preventDefault();
+    const submitButton = $(this).find("button[type='submit'], button.guardar");
+    submitButton.prop('disabled', true);
 
     const data = {
       area: $('#area').val(),
@@ -107,6 +109,9 @@ $(function() {
     .catch(error => {
       alert('Error al enviar datos');
       console.error(error);
+    })
+    .finally(() => {
+      submitButton.prop('disabled', false);
     });
 
   });
