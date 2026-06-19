@@ -73,7 +73,7 @@ $googleData = $_SESSION['google_user_data'];
         <p id="mensaje" class="w3-center w3-margin-top"></p>
 
         <div class="w3-center w3-margin-top">
-            <a href="index.html" class="w3-button w3-border w3-small">Volver al Login</a>
+            <a href="../index.html" class="w3-button w3-border w3-small">Volver al Login</a>
         </div>
     </div>
 </div>

@@ -3,7 +3,7 @@ header('Content-Type: application/json; charset=UTF-8');
 require_once __DIR__ . '/../database/database.php';
 
 try {
-    $data = Database::query('SELECT * FROM reporte_sanitario ORDER BY fecha DESC');
+    $data = Database::query('SELECT * FROM alertas ORDER BY fecha DESC');
     echo json_encode($data);
 } catch (Exception $e) {
     http_response_code(500);

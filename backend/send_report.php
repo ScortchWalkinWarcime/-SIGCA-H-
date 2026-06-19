@@ -202,6 +202,6 @@ try {
     }
 
     sendJson(['status' => 'ok', 'message' => 'Correo enviado correctamente.']);
-} catch (Exception $e) {
+} catch (\Exception $e) {
     sendJson(['status' => 'error', 'message' => 'Error del servidor: ' . $e->getMessage()], 500);
 }
