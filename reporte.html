@@ -1,115 +1,184 @@
-<h2>Enviar reporte por correo</h2>
+<h2>Generar reporte PDF</h2>
+
 <div class="form-section w3-white w3-padding w3-card-4">
-    <p>Genera un PDF a partir de los registros seleccionados y envíalo desde tu cuenta al destinatario elegido.</p>
+
+    <p>
+        Genera un reporte en formato PDF y descárgalo directamente en tu equipo.
+    </p>
 
     <div class="w3-margin-bottom">
         <label>Seleccione el módulo</label>
-        <select id="module" class="w3-select w3-border" name="module">
-            <option value="" disabled selected>Elegir módulo</option>
-            <option value="agua">Control de Agua</option>
-            <option value="higiene">Control de Higiene</option>
-            <option value="temperatura">Control de Temperatura</option>
-            <option value="recepcion">Recepción de Alimentos</option>
+
+        <select id="module"
+                class="w3-select w3-border">
+
+            <option value="" disabled selected>
+                Elegir módulo
+            </option>
+
+            <option value="agua">
+                Control de Agua
+            </option>
+
+            <option value="higiene">
+                Control de Higiene
+            </option>
+
+            <option value="temperatura">
+                Control de Temperatura
+            </option>
+
+            <option value="recepcion">
+                Recepción de Alimentos
+            </option>
+
         </select>
     </div>
 
     <div class="w3-row-padding">
+
         <div class="w3-half w3-margin-bottom">
             <label>Fecha inicio</label>
-            <input id="from-date" class="w3-input w3-border" type="date">
+
+            <input id="from-date"
+                   class="w3-input w3-border"
+                   type="date">
         </div>
+
         <div class="w3-half w3-margin-bottom">
             <label>Fecha fin</label>
-            <input id="to-date" class="w3-input w3-border" type="date">
+
+            <input id="to-date"
+                   class="w3-input w3-border"
+                   type="date">
         </div>
+
     </div>
 
-    <div class="w3-margin-bottom">
-        <label>Enviar a (seleccione usuario existente)</label>
-        <select id="recipient-select" class="w3-select w3-border" name="recipient">
-            <option value="" disabled selected>Elegir destinatario</option>
-        </select>
+    <button id="download-report"
+            class="w3-button w3-blue">
+
+        Descargar PDF
+
+    </button>
+
+    <div id="status-box"
+         class="w3-margin-top">
     </div>
 
-    <div class="w3-margin-bottom">
-        <label>O usar correo manual</label>
-        <input id="manual-email" class="w3-input w3-border" type="email" placeholder="destinatario@ejemplo.com">
-    </div>
-
-    <button id="send-report" class="w3-button w3-green">Enviar reporte PDF</button>
-
-    <div class="status-box" id="status-box"></div>
-</div>
 </div>
 
-<script>(function(){
-    const recipientSelect = $('#recipient-select');
-    const statusBox = $('#status-box');
-    const formSection = $('.form-section');
+<script>
 
-    function showStatus(message, isError = false) {
-        statusBox.html(`<div class="w3-panel ${isError ? 'w3-pale-red' : 'w3-pale-green'} w3-border ${isError ? 'w3-border-red' : 'w3-border-green'}">${message}</div>`);
+(function(){
+
+    const statusBox =
+        document.getElementById('status-box');
+
+    function showStatus(
+        message,
+        isError = false
+    ){
+
+        statusBox.innerHTML = `
+            <div class="w3-panel
+                        ${isError
+                            ? 'w3-pale-red w3-border-red'
+                            : 'w3-pale-green w3-border-green'}
+                        w3-border">
+
+                ${message}
+
+            </div>
+        `;
     }
 
-    async function loadUsers() {
-        try {
-            const res = await fetch('/SIGCA/backend/get_users.php');
-            const data = await res.json();
-            if (data.status === 'ok') {
-                recipientSelect.empty();
-                recipientSelect.append('<option value="" disabled selected>Elegir destinatario</option>');
-                data.data.forEach(user => {
-                    recipientSelect.append(`<option value="${user.email}">${user.nombre_usuario} (${user.email})</option>`);
-                });
+    document
+        .getElementById('download-report')
+        .addEventListener(
+            'click',
+            () => {
+
+                const module =
+                    document.getElementById('module').value;
+
+                const fromDate =
+                    document.getElementById('from-date').value;
+
+                const toDate =
+                    document.getElementById('to-date').value;
+
+                if (!module) {
+
+                    showStatus(
+                        'Selecciona un módulo.',
+                        true
+                    );
+
+                    return;
+                }
+
+                showStatus(
+                    'Generando PDF...'
+                );
+
+                const form =
+                    document.createElement('form');
+
+                form.method = 'POST';
+
+                form.action =
+                    '/SIGCA/backend/send_report.php';
+
+                form.style.display =
+                    'none';
+
+                const fields = {
+
+                    module: module,
+
+                    from_date: fromDate,
+
+                    to_date: toDate
+
+                };
+
+                for (const key in fields) {
+
+                    const input =
+                        document.createElement(
+                            'input'
+                        );
+
+                    input.type = 'hidden';
+
+                    input.name = key;
+
+                    input.value =
+                        fields[key];
+
+                    form.appendChild(
+                        input
+                    );
+                }
+
+                document.body.appendChild(
+                    form
+                );
+
+                form.submit();
+
+                setTimeout(() => {
+
+                    showStatus(
+                        'Reporte generado correctamente.'
+                    );
+
+                }, 1000);
+
             }
-        } catch (error) {
-            showStatus('No se pudo cargar la lista de destinatarios.', true);
-        }
-    }
+        );
 
-    $('#send-report').click(async () => {
-        const module = $('#module').val();
-        const fromDate = $('#from-date').val();
-        const toDate = $('#to-date').val();
-        const recipientEmail = recipientSelect.val();
-        const manualEmail = $('#manual-email').val().trim();
+})();
 
-        if (!module) {
-            showStatus('Selecciona un módulo para el reporte.', true);
-            return;
-        }
-
-        if (!recipientEmail && !manualEmail) {
-            showStatus('Selecciona un destinatario o escribe un correo manual.', true);
-            return;
-        }
-
-        showStatus('Enviando reporte...');
-
-        const formData = new URLSearchParams();
-        formData.append('module', module);
-        formData.append('from_date', fromDate);
-        formData.append('to_date', toDate);
-        formData.append('recipient_email', recipientEmail || '');
-        formData.append('manual_email', manualEmail || '');
-
-        try {
-            const response = await fetch('/SIGCA/backend/send_report.php', {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
-                body: formData.toString()
-            });
-            const result = await response.json();
-            if (result.status === 'ok') {
-                showStatus(result.message);
-            } else {
-                showStatus(result.message || 'Error al enviar el reporte.', true);
-            }
-        } catch (error) {
-            showStatus('Ocurrió un error al enviar el reporte.', true);
-            console.error(error);
-        }
-    });
-
-    loadUsers();
-})();</script>
+</script>
