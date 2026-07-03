@@ -1,0 +1,154 @@
+%PDF-1.4
+1 0 obj << /Type /Catalog /Pages 2 0 R >> endobj
+2 0 obj << /Type /Pages /Kids [4 0 R 6 0 R] /Count 2 >> endobj
+3 0 obj << /Length 1883 >> stream
+BT
+/F1 12 Tf
+50 760 Td
+(Reporte SIGCA-H - Control de Temperatura) Tj
+0 -14 Td
+(Fecha de generación: 2026-06-26 12:44:25) Tj
+0 -14 Td
+(Módulo: Control de Temperatura) Tj
+0 -14 Td
+(Período: 2026-05-01 - 2026-06-26) Tj
+0 -14 Td
+(Total de registros: 11) Tj
+0 -14 Td
+(------------------------------------------------------------------------) Tj
+0 -14 Td
+(Registro #1) Tj
+0 -14 Td
+(Fecha: 2026-06-19) Tj
+0 -14 Td
+(Area: Camara Refrigeracion) Tj
+0 -14 Td
+(Valor: 3) Tj
+0 -14 Td
+(------------------------------------------------------------------------) Tj
+0 -14 Td
+(Registro #2) Tj
+0 -14 Td
+(Fecha: 2026-06-19) Tj
+0 -14 Td
+(Area: Refrigerador) Tj
+0 -14 Td
+(Valor: 4) Tj
+0 -14 Td
+(------------------------------------------------------------------------) Tj
+0 -14 Td
+(Registro #3) Tj
+0 -14 Td
+(Fecha: 2026-06-19) Tj
+0 -14 Td
+(Area: Camara Refrigeracion) Tj
+0 -14 Td
+(Valor: 3) Tj
+0 -14 Td
+(------------------------------------------------------------------------) Tj
+0 -14 Td
+(Registro #4) Tj
+0 -14 Td
+(Fecha: 2026-06-19) Tj
+0 -14 Td
+(Area: Refrigerador) Tj
+0 -14 Td
+(Valor: 4) Tj
+0 -14 Td
+(------------------------------------------------------------------------) Tj
+0 -14 Td
+(Registro #5) Tj
+0 -14 Td
+(Fecha: 2026-06-12) Tj
+0 -14 Td
+(Area: Congelador) Tj
+0 -14 Td
+(Valor: 5) Tj
+0 -14 Td
+(------------------------------------------------------------------------) Tj
+0 -14 Td
+(Registro #6) Tj
+0 -14 Td
+(Fecha: 2026-06-12) Tj
+0 -14 Td
+(Area: Congelador) Tj
+0 -14 Td
+(Valor: 5) Tj
+0 -14 Td
+(------------------------------------------------------------------------) Tj
+0 -14 Td
+(Registro #7) Tj
+0 -14 Td
+(Fecha: 2026-06-02) Tj
+0 -14 Td
+(Area: Congelador) Tj
+0 -14 Td
+(Valor: 4) Tj
+0 -14 Td
+(------------------------------------------------------------------------) Tj
+0 -14 Td
+(Registro #8) Tj
+0 -14 Td
+(Fecha: 2026-06-02) Tj
+0 -14 Td
+(Area: Congelador) Tj
+0 -14 Td
+(Valor: 4) Tj
+0 -14 Td
+ET
+endstream endobj
+4 0 obj << /Type /Page /Parent 2 0 R /MediaBox [0 0 612 792] /Contents 3 0 R /Resources << /Font << /F1 5 0 R >> >> >> endobj
+5 0 obj << /Length 712 >> stream
+BT
+/F1 12 Tf
+50 760 Td
+(------------------------------------------------------------------------) Tj
+0 -14 Td
+(Registro #9) Tj
+0 -14 Td
+(Fecha: 2026-05-24) Tj
+0 -14 Td
+(Area: Congelador) Tj
+0 -14 Td
+(Valor: 4) Tj
+0 -14 Td
+(------------------------------------------------------------------------) Tj
+0 -14 Td
+(Registro #10) Tj
+0 -14 Td
+(Fecha: 2026-05-21) Tj
+0 -14 Td
+(Area: Congelador) Tj
+0 -14 Td
+(Valor: 12) Tj
+0 -14 Td
+(------------------------------------------------------------------------) Tj
+0 -14 Td
+(Registro #11) Tj
+0 -14 Td
+(Fecha: 2026-05-17) Tj
+0 -14 Td
+(Area: Congelador) Tj
+0 -14 Td
+(Valor: 4) Tj
+0 -14 Td
+(------------------------------------------------------------------------) Tj
+0 -14 Td
+ET
+endstream endobj
+6 0 obj << /Type /Page /Parent 2 0 R /MediaBox [0 0 612 792] /Contents 5 0 R /Resources << /Font << /F1 5 0 R >> >> >> endobj
+7 0 obj << /Type /Font /Subtype /Type1 /BaseFont /Helvetica >> endobj
+xref
+0 8
+0000000000 65535 f 
+0000000009 00000 n 
+0000000058 00000 n 
+0000000121 00000 n 
+0000002056 00000 n 
+0000002182 00000 n 
+0000002945 00000 n 
+0000003071 00000 n 
+trailer << /Size 8 /Root 1 0 R >>
+startxref
+3141
+%%EOF

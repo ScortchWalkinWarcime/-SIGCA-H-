@@ -94,7 +94,7 @@ if ($_SERVER['REQUEST_METHOD'] !== 'POST') {
     die("Método no permitido");
 }
 
-if (!isset($_SESSION['cve_usuario'])) {
+if (!isset($_SESSION['n_usuario'])) {
     die("No autorizado");
 }
 
@@ -115,8 +115,11 @@ if (!in_array($module, $allowedModules, true)) {
 
 $from = $fromDate ? validateDate($fromDate) : null;
 $to = $toDate ? validateDate($toDate) : null;
-
+// Ajustar los valores debidos a cada modulo y tambien agregar las diferencias de grados a cada uno.
 try {
+
+    // correcion de el error de labe
+    $label = '';
 
     switch ($module) {
 
@@ -169,12 +172,12 @@ try {
                 SELECT
                     ct.fecha,
                     a.nombre AS area,
-                    ct.valor
+                    ct.valor AS temperatura
                 FROM control_temperatura ct
                 JOIN areas a
                 ON ct.id_area = a.cve_area
             ";
-
+//cambiar valores en frontend de este case
             break;
 
         case 'recepcion':
