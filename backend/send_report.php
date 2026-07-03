@@ -4,6 +4,12 @@ session_start();
 require_once __DIR__ . '/../database/database.php';
 
 function pdfEscape(string $text): string {
+    $text = iconv(
+    'UTF-8',
+    'Windows-1252//TRANSLIT',
+    $text
+    );
+    
     return str_replace(['\\', '(', ')'], ['\\\\', '\\(', '\\)'], $text);
 }
 

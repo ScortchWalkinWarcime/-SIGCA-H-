@@ -50,7 +50,7 @@
 <label class="w3-margin-top">Observaciones</label>
 <textarea id="observaciones" class="w3-input w3-border"></textarea>
 
-<button class="w3-button w3-blue w3-margin-top guardar">
+<button type="submit" class="w3-button w3-blue w3-margin-top guardar" id="btnGuardarRecepcion">
 Registrar
 </button>
 
@@ -73,6 +73,7 @@ Registrar
 </table>
 
 <script>
+let guardandoRecepcion = false;
 
 async function cargarRegistrosRecepcion(){
     try{
@@ -112,8 +113,14 @@ async function cargarRegistrosRecepcion(){
 
 $("#formRecepcion").submit(function(e){
     e.preventDefault();
+
+    if (guardandoRecepcion) {
+        return;
+    }
+
+    guardandoRecepcion = true;
     const submitButton = $(this).find("button[type='submit'], button.guardar");
-    submitButton.prop('disabled', true);
+    submitButton.prop('disabled', true).text('Guardando...');
 
     let data = {
         producto: $("#producto").val(),
@@ -148,7 +155,8 @@ $("#formRecepcion").submit(function(e){
         $("#mensaje").html("<span class='w3-text-red'>Error de conexión</span>");
     })
     .finally(() => {
-        submitButton.prop('disabled', false);
+        guardandoRecepcion = false;
+        submitButton.prop('disabled', false).text('Registrar');
     });
 });
 
